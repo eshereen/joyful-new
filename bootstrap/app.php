@@ -1,8 +1,11 @@
 <?php
 
+use App\Providers\AuthServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Foundation\Support\Providers\EventServiceProvider;
+use Illuminate\Foundation\Support\Providers\RouteServiceProvider;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -10,9 +13,22 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
-        //
+    ->withProviders([
+        App\Providers\AppServiceProvider::class,
+
+        EventServiceProvider::class,
+        RouteServiceProvider::class,
+        App\Providers\LoyaltyServiceProvider::class,
+    ])
+    ->withMiddleware(function (Middleware $middleware) {
+        // EMERGENCY: Temporarily disabled custom CSRF middleware - using standard with bypasses
+        // $middleware->replace(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class, \App\Http\Middleware\LivewireCSRFMiddleware::class);
+
+        // Append our currency middleware to the web group in a supported way
+        $middleware->appendToGroup('web', \App\Http\Middleware\CurrencyMiddleware::class);
+        $middleware->appendToGroup('web', \App\Http\Middleware\CacheControlStatic::class);
+
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
+    ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
