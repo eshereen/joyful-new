@@ -147,6 +147,15 @@ namespace App\Models{
 
 namespace App\Models{
 /**
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|City newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|City newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|City query()
+ */
+	class City extends \Eloquent {}
+}
+
+namespace App\Models{
+/**
  * @property int $id
  * @property string $name
  * @property string $slug
@@ -682,6 +691,15 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Setting whereValue($value)
  */
 	class Setting extends \Eloquent {}
+}
+
+namespace App\Models{
+/**
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shipping newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shipping newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shipping query()
+ */
+	class Shipping extends \Eloquent {}
 }
 
 namespace App\Models{

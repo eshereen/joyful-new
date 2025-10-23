@@ -128,13 +128,13 @@
                 <button wire:click="toggleWishlist"
                         wire:loading.attr="disabled"
                         wire:target="toggleWishlist"
-                        class="wishlist-btn p-2 transition-colors {{ $isInWishlist ? 'text-red-500' : 'text-gray-400 hover:text-red-500' }}"
+                        class="wishlist-btn p-2 transition-colors {{ $isInWishlist ? 'text-yellow-900' : 'text-gray-400 hover:text-yellow-900' }}"
                         title="{{ $isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' }}">
                     <svg class="w-8 h-8" fill="{{ $isInWishlist ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                     </svg>
                     <span wire:loading wire:target="toggleWishlist" class="absolute inset-0 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-red-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-yellow-900 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -168,41 +168,14 @@
             </div>
 
             <div class="mb-6">
-           {{--  <div class="flex items-center mb-2">
-                    <span class="mr-2 text-gray-700">Availability:</span>
-                    @if($selectedVariant && $selectedVariant->stock > 0)
-                    <span class="font-medium text-green-600">In Stock ({{ $selectedVariant->stock }} available) - {{ $selectedVariant->color }}, {{ $selectedVariant->size }}</span>
-                    @elseif($product->variants->isEmpty() && $product->quantity > 0)
-                    <span class="font-medium text-green-600">In Stock</span>
-                    @else
-                    <span class="font-medium text-red-600">Out of Stock</span>
-                    @endif
-                </div> --}}
+       
 
 
                 @if($product->variants->isNotEmpty())
                 <div class="mb-6">
 
 
-                    <!-- Size Selection -->
-                    @php
-                        $sizes = $product->variants->pluck('size')->filter()->unique()->values();
-                    @endphp
-                    @if($sizes->count() > 0)
-                    <div class="mb-4">
-                        <h4 class="mb-2 text-sm font-medium text-gray-700">Size</h4>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach($sizes as $size)
-                                <button type="button"
-                                        wire:click="selectSize('{{ $size }}')"
-                                        class="w-12 h-10 flex items-center justify-center border rounded-md text-sm {{ $selectedSize == $size ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}"
-                                        @if($selectedSize == $size) aria-pressed="true" @endif>
-                                    {{ $size }}
-                                </button>
-                            @endforeach
-                        </div>
-                    </div>
-                    @endif
+                   
 
                     <!-- Size Selection -->
                     @php
@@ -294,8 +267,8 @@
                         <div>
                             <span class="text-sm text-gray-600">Selected:</span>
                             <span class="ml-2 font-medium">
-                                @if($selectedVariant->color || $selectedVariant->size)
-                                    {{ $selectedVariant->color ? $selectedVariant->color : '' }}{{ $selectedVariant->color && $selectedVariant->size ? ' - ' : '' }}{{ $selectedVariant->size ? $selectedVariant->size : '' }}
+                                @if($selectedVariant->wick_type || $selectedVariant->size)
+                                    {{ $selectedVariant->wick_type ? $selectedVariant->size : '' }}{{ $selectedVariant->wick_type && $selectedVariant->size ? ' - ' : '' }}{{ $selectedVariant->size ? $selectedVariant->size : '' }}
                                 @else
                                     SKU: {{ $selectedVariant->sku }}
                                 @endif

@@ -1,0 +1,76 @@
+.slider-wrapper {
+    width: 100%;
+    overflow: hidden !important;
+    position: relative;
+}
+
+/* Product Slider Styles */
+.product-slider-container {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+
+.product-slider {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    width: max-content !important;
+    gap: 1.5rem;
+    animation: slideAnimation 30s linear infinite;
+    padding: 1rem 0;
+}
+
+.product-slider > div {
+    flex: 0 0 auto !important;
+    width: auto !important;
+}
+
+/* Review Slider Styles */
+.review-slider-container {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+
+.review-slider {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    width: max-content !important;
+    gap: 1.5rem;
+    animation: slideAnimation 25s linear infinite;
+    padding: 1rem 0;
+}
+
+.review-slider > div {
+    flex: 0 0 auto !important;
+    width: auto !important;
+}
+
+/* Common Animation Styles */
+@keyframes slideAnimation {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.product-slider:hover,
+.review-slider:hover {
+    animation-play-state: paused;
+}
+
+/* Ensure sliders maintain their layout after Livewire updates */
+[wire\:loading] .product-slider,
+[wire\:loading] .review-slider {
+    animation-play-state: running !important;
+}
+
+/* Control buttons positioning */
+.slider-controls {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 30;
+}

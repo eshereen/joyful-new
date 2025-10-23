@@ -54,16 +54,25 @@
     @if(request()->routeIs('home'))
     <!-- Slider view for home page -->
     @if($products && $products->count() > 0)
-    <div class="overflow-hidden relative" x-data="{
+    <div class="product-slider-container" x-data="{
         isPaused: false,
-        scrollSpeed: 1,
+        init() {
+            this.$nextTick(() => {
+                this.initSlider();
+            });
+        },
+        initSlider() {
+            const slider = this.$refs.productSlider;
+            if (slider) {
+                slider.style.animationDuration = '30s';
+                slider.style.animationPlayState = this.isPaused ? 'paused' : 'running';
+            }
+        },
         togglePause() {
             this.isPaused = !this.isPaused;
-            const slider = this.$refs.slider;
-            if (this.isPaused) {
-                slider.style.animationPlayState = 'paused';
-            } else {
-                slider.style.animationPlayState = 'running';
+            const slider = this.$refs.productSlider;
+            if (slider) {
+                slider.style.animationPlayState = this.isPaused ? 'paused' : 'running';
             }
         },
         speedUp() {
@@ -76,7 +85,7 @@
         }
     }">
         <!-- Control Buttons -->
-        <div class="flex absolute top-4 right-4 z-30 gap-2">
+        <div class="slider-controls">
             <!-- Play/Pause Button -->
             <button @click="togglePause()"
                     class="p-3 rounded-full shadow-lg transition-all duration-200 bg-white/90 hover:bg-white hover:scale-110"
@@ -108,13 +117,14 @@
             </button>
         </div>
 
-        <!-- Products Container -->
-        <div class="flex product-slider"
-             x-ref="slider"
-             @mouseenter="isPaused = true; $refs.slider.style.animationPlayState = 'paused'"
-             @mouseleave="isPaused = false; $refs.slider.style.animationPlayState = 'running'">
-        <!-- First set of products -->
-        <div class="flex px-3 space-x-6">
+       <!-- Products Container -->
+       <div wire:ignore class="product-slider-container">
+           <div class="product-slider"
+                x-ref="productSlider"
+                @mouseenter="isPaused = true; $refs.productSlider.style.animationPlayState = 'paused'"
+                @mouseleave="isPaused = false; $refs.productSlider.style.animationPlayState = 'running'">
+            <!-- First set of products -->
+            <div class="flex px-3 space-x-6">
             @foreach($products as $product)
         <div class="overflow-hidden flex-shrink-0 w-64 bg-white rounded-lg shadow-md transition hover:shadow-lg">
             <div class="relative overflow-hidden aspect-[4/5] product-image-container"
@@ -185,7 +195,7 @@
                             class="p-2 bg-white rounded-full shadow-md transition-colors hover:bg-gray-50"
                             data-product-id="{{ $product->id }}"
                             title="{{ in_array($product->id, $wishlistProductIds) ? 'Remove from Wishlist' : 'Add to Wishlist' }}">
-                        <svg class="w-5 h-5 {{ in_array($product->id, $wishlistProductIds) ? 'text-red-500 fill-current' : 'text-gray-600' }}"
+                        <svg class="w-5 h-5 {{ in_array($product->id, $wishlistProductIds) ? 'text-yellow-900 fill-current' : 'text-gray-600' }}"
                              fill="{{ in_array($product->id, $wishlistProductIds) ? 'currentColor' : 'none' }}"
                              stroke="currentColor"
                              viewBox="0 0 24 24">
@@ -193,7 +203,7 @@
                         </svg>
                     </button>
                     <span wire:loading wire:target="toggleWishlist({{ $product->id }})" class="absolute top-2 right-2 p-2">
-                        <svg class="w-5 h-5 text-red-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-yellow-900 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -235,7 +245,8 @@
                         @endif
                     </div>
 
-                    @if($product->has_variants)
+           @if($product->has_variants)
+           {{--  
                         @if($product->quantity > 0)
                         <button wire:click="openVariantModal({{ $product->id }})"
                                 class="p-2 text-white rounded-full border-2 transition add-to-cart bg-gray-950 hover:bg-gray-100 hover:text-gray-950 border-gray-950">
@@ -251,6 +262,7 @@
                             </svg>
                         </button>
                         @endif
+                       
                     @else
                         @if($product->quantity > 0)
                         <button wire:click="addSimpleProductToCart({{ $product->id }}, 1)"
@@ -269,7 +281,9 @@
                             </svg>
                         </button>
                         @endif
+                         --}}
                     @endif
+                    
                 </div>
             </div>
         </div>
@@ -342,7 +356,7 @@
                             class="p-2 bg-white rounded-full shadow-md transition-colors hover:bg-gray-50"
                             data-product-id="{{ $product->id }}"
                             title="{{ in_array($product->id, $wishlistProductIds) ? 'Remove from Wishlist' : 'Add to Wishlist' }}">
-                        <svg class="w-5 h-5 {{ in_array($product->id, $wishlistProductIds) ? 'text-red-500 fill-current' : 'text-gray-600' }}"
+                        <svg class="w-5 h-5 {{ in_array($product->id, $wishlistProductIds) ? 'text-yellow-900 fill-current' : 'text-gray-600' }}"
                              fill="{{ in_array($product->id, $wishlistProductIds) ? 'currentColor' : 'none' }}"
                              stroke="currentColor"
                              viewBox="0 0 24 24">
@@ -350,7 +364,7 @@
                         </svg>
                     </button>
                     <span wire:loading wire:target="toggleWishlist({{ $product->id }})" class="absolute top-2 right-2 p-2">
-                        <svg class="w-5 h-5 text-red-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-yellow-900 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -432,6 +446,7 @@
         </div>
             @endforeach
         </div>
+       
     </div>
     </div>
     @else
@@ -520,7 +535,7 @@
                             class="p-2 bg-white rounded-full shadow-md transition-colors hover:bg-gray-50"
                             data-product-id="{{ $product->id }}"
                             title="{{ in_array($product->id, $wishlistProductIds) ? 'Remove from Wishlist' : 'Add to Wishlist' }}">
-                        <svg class="w-5 h-5 {{ in_array($product->id, $wishlistProductIds) ? 'text-red-500 fill-current' : 'text-gray-600' }}"
+                        <svg class="w-5 h-5 {{ in_array($product->id, $wishlistProductIds) ? 'text-yellow-900 fill-current' : 'text-gray-600' }}"
                              fill="{{ in_array($product->id, $wishlistProductIds) ? 'currentColor' : 'none' }}"
                              stroke="currentColor"
                              viewBox="0 0 24 24">
@@ -528,7 +543,7 @@
                         </svg>
                     </button>
                     <span wire:loading wire:target="toggleWishlist({{ $product->id }})" class="absolute top-2 right-2 p-2">
-                        <svg class="w-5 h-5 text-red-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-yellow-900 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -913,4 +928,43 @@ function initializeModalQuantity() {
         console.log('Modal quantity initialized to:', currentQty);
     }
 }
+// --- Keep Alpine slider running after Livewire updates ---
+document.addEventListener('DOMContentLoaded', function() {
+    Livewire.hook('message.processed', (message, component) => {
+        if (component.fingerprint.name === 'product-index') {
+            const slider = document.querySelector('[x-ref="slider"]');
+            if (slider) {
+                // Ensure slider stays a single-row flex
+                slider.style.display = 'flex';
+                slider.style.flexWrap = 'nowrap';
+
+                // Restart CSS animation by toggling the class
+                slider.classList.remove('product-slider');
+                // Force reflow
+                void slider.offsetWidth;
+                slider.classList.add('product-slider');
+
+                // Restore animation duration and play state if Alpine data exists
+                const root = slider.closest('[x-data]');
+                if (root && window.Alpine && typeof Alpine.initTree === 'function') {
+                    try {
+                        // Re-initialize Alpine within the slider root so x-data works again
+                        Alpine.initTree(root);
+                    } catch (e) {
+                        console.warn('Alpine initTree failed:', e);
+                    }
+                }
+                // If Alpine state available, set duration/play state from it
+                if (root && root.__x) {
+                    const scrollSpeed = root.__x.$data?.scrollSpeed || 1;
+                    slider.style.animationDuration = (30 / scrollSpeed) + 's';
+                    slider.style.animationPlayState = root.__x.$data?.isPaused ? 'paused' : 'running';
+                } else {
+                    slider.style.animationDuration = '30s';
+                    slider.style.animationPlayState = 'running';
+                }
+            }
+        }
+    });
+});
 </script>

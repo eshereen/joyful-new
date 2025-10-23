@@ -9,7 +9,7 @@
                   placeholder="Add any special instructions or notes for your order..."
                   class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">{{ old('notes') }}</textarea>
         @error('notes')
-            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+            <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p>
         @enderror
     </div>
     

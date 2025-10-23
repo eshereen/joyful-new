@@ -123,7 +123,7 @@
                                    class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent @error('name') border-red-500 @enderror"
                                    required>
                             @error('name')
-                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
@@ -133,7 +133,7 @@
                                    class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent @error('email') border-red-500 @enderror"
                                    required>
                             @error('email')
-                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
@@ -144,7 +144,7 @@
                                class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent @error('subject') border-red-500 @enderror"
                                required>
                         @error('subject')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
@@ -154,7 +154,7 @@
                                   class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none @error('message') border-red-500 @enderror"
                                   required>{{ old('message') }}</textarea>
                         @error('message')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 

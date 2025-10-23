@@ -6,23 +6,7 @@
             <div class="animate-on-scroll">
                 <h3 class="text-2xl font-bold mb-4">Joyful</h3>
                 <p class="text-gray-200 mb-4">Bringing joy to your everyday life through carefully curated products.</p>
-                <div class="flex space-x-4 justify-center md:justify-start">
-                    <a href="https://www.facebook.com/JoyfulEgypt" class="text-gray-200 hover:text-red-600 transition-colors">
-                        <i class="fab fa-facebook text-xl"></i>
-                    </a>
-                    <a href="https://www.instagram.com/Joyful_official/" class="text-gray-200 hover:text-red-600 transition-colors">
-                        <i class="fab fa-instagram text-xl"></i>
-                    </a>
-                    <a href="https://wa.me/message/LFV5D6TOO62SC1" class="text-gray-200 hover:text-red-600 transition-colors">
-                        <i class="fa-brands fa-whatsapp text-xl"></i>
-                    </a>
-                    <a href="mailto:Joyfulheadoffice@gmail.com"  class="text-gray-200 hover:text-red-600 transition-colors">
-                      <i class="fa-regular fa-envelope text-xl"></i>
-                    </a>
-                     <a href="tel:+201148438466" class="text-gray-200 hover:text-red-600 transition-colors">
-                      <i class="fa-solid fa-phone text-xl"></i>
-                    </a>
-                </div>
+               
             </div>
 
             <!-- Shop -->
@@ -48,13 +32,25 @@
 
                 </ul>
             </div>
+             <div class="flex space-x-4 justify-center md:justify-start">
+                    <a href="https://www.facebook.com/JoyfulEgypt" class="text-gray-200 hover:text-red-600 transition-colors">
+                        <i class="fab fa-facebook text-xl"></i>
+                    </a>
+                    <a href="https://www.instagram.com/Joyful_official/" class="text-gray-200 hover:text-red-600 transition-colors">
+                        <i class="fab fa-instagram text-xl"></i>
+                    </a>
+                    <a href="https://wa.me/message/LFV5D6TOO62SC1" class="text-gray-200 hover:text-red-600 transition-colors">
+                        <i class="fa-brands fa-whatsapp text-xl"></i>
+                    </a>
+                    <a href="mailto:Joyfulheadoffice@gmail.com"  class="text-gray-200 hover:text-red-600 transition-colors">
+                      <i class="fa-regular fa-envelope text-xl"></i>
+                    </a>
+                     <a href="tel:+201148438466" class="text-gray-200 hover:text-red-600 transition-colors">
+                      <i class="fa-solid fa-phone text-xl"></i>
+                    </a>
+                </div>
 
-            <!-- Newsletter -->
-            <div class="animate-on-scroll">
-                <h4 class="font-bold mb-4">JOIN OUR NEWSLETTER</h4>
-
-                <livewire:newsletter.subscribe-form />
-            </div>
+        
         </div>
         <div class="border-t border-gray-600 pt-8 text-center text-gray-200 animate-on-scroll">
             <p>&copy; 2025 Joyful. All rights reserved.</p>
