@@ -60,12 +60,12 @@
                    @click.away="categoriesDropdownOpen = false">
 
                   <!-- Header -->
-                  <div class="py-4 border-b border-gray-100">
+                  <div class="py-4 border-b border-white">
                       <div class="container px-4 mx-auto">
                           <div class="flex justify-between items-center">
                               <h2 class="text-2xl font-bold text-gray-900">Browse Categories</h2>
                               <button @click="categoriesDropdownOpen = false"
-                                      class="p-2 rounded-full transition-colors hover:bg-gray-100">
+                                      class="p-2 rounded-full transition-colors hover:bg-white">
                                   <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                   </svg>
@@ -101,12 +101,12 @@
                    @click.away="collectionsDropdownOpen = false">
 
                   <!-- Header -->
-                  <div class="py-4 border-b border-gray-100">
+                  <div class="py-4 border-b border-white">
                       <div class="container px-4 mx-auto">
                           <div class="flex justify-between items-center">
                               <h2 class="text-2xl font-bold text-gray-900">Browse Collections</h2>
                               <button @click="collectionsDropdownOpen = false"
-                                      class="p-2 rounded-full transition-colors hover:bg-gray-100">
+                                      class="p-2 rounded-full transition-colors hover:bg-white">
                                   <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                   </svg>
@@ -154,9 +154,9 @@
           <!-- Logo (Perfectly Centered) -->
       <a href="{{ route('home') }}" class="flex absolute left-1/2 items-center transform -translate-x-1/2 py-4">
           <!-- White logo (home page, not scrolled) -->
-          <img x-show="isHome && !scrolled" src="{{asset('/imgs/logo.png')}}" alt="logo" class="w-16">
+          <img x-show="isHome && !scrolled" src="{{asset('/imgs/logo.png')}}" alt="logo" class="w-20 py-2">
           <!-- Black logo (home page scrolled or non-home page) -->
-          <img x-show="!isHome || (isHome && scrolled)" src="{{asset('/imgs/logo.png')}}" alt="logo" class="w-16">
+          <img x-show="!isHome || (isHome && scrolled)" src="{{asset('/imgs/logo.png')}}" alt="logo" class="w-20 py-2">
       </a>
 
       <!-- Desktop Right Side Icons -->
@@ -209,7 +209,7 @@
     <!-- Mobile Menu Header -->
     <div class="flex justify-between items-center p-4 border-b border-gray-200">
         <h2 class="text-lg font-semibold text-gray-900">Menu</h2>
-        <button @click="mobileMenuOpen = false" class="p-2 rounded-full transition-colors hover:bg-gray-100">
+        <button @click="mobileMenuOpen = false" class="p-2 rounded-full transition-colors hover:bg-white">
             <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>

@@ -147,15 +147,6 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * @method static \Illuminate\Database\Eloquent\Builder<static>|City newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|City newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|City query()
- */
-	class City extends \Eloquent {}
-}
-
-namespace App\Models{
-/**
  * @property int $id
  * @property string $name
  * @property string $slug
@@ -246,6 +237,8 @@ namespace App\Models{
  * @property-read int|null $customers_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Newsletter> $newsletters
  * @property-read int|null $newsletters_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\State> $states
+ * @property-read int|null $states_count
  * @method static \Database\Factories\CountryFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Country newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Country newQuery()
@@ -431,7 +424,7 @@ namespace App\Models{
  * @property string|null $first_name
  * @property string|null $last_name
  * @property int|null $country_id
- * @property string|null $state
+ * @property \App\Models\State|null $state
  * @property string|null $city
  * @property string|null $email
  * @property string|null $phone_number
@@ -463,6 +456,7 @@ namespace App\Models{
  * @property-read int|null $items_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Payment> $payments
  * @property-read int|null $payments_count
+ * @property-read \App\Models\Shipping|null $shipping
  * @property-read \App\Models\User|null $user
  * @method static \Database\Factories\OrderFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newModelQuery()
@@ -695,11 +689,48 @@ namespace App\Models{
 
 namespace App\Models{
 /**
+ * @property int $id
+ * @property int|null $state_id
+ * @property int $price
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
+ * @property-read int|null $orders_count
+ * @property-read \App\Models\State|null $state
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Shipping newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Shipping newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Shipping query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shipping whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shipping whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shipping wherePrice($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shipping whereStateId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shipping whereUpdatedAt($value)
  */
 	class Shipping extends \Eloquent {}
+}
+
+namespace App\Models{
+/**
+ * @property int $id
+ * @property int|null $country_id
+ * @property string $name
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Country|null $country
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
+ * @property-read int|null $orders_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Shipping> $shippings
+ * @property-read int|null $shippings_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|State newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|State newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|State query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|State whereCountryId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|State whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|State whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|State whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|State whereUpdatedAt($value)
+ */
+	class State extends \Eloquent {}
 }
 
 namespace App\Models{

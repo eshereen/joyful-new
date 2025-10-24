@@ -54,7 +54,7 @@
 
       <!-- Magnifier toggle -->
       <button type="button"
-              class="absolute z-30 px-2 py-1 text-xs text-gray-700 border border-gray-200 rounded top-3 right-3 bg-white/90 hover:bg-gray-100"
+              class="absolute z-30 px-2 py-1 text-xs text-gray-700 border border-gray-200 rounded top-3 right-3 bg-white/90 hover:bg-white"
               @click.stop="magnifierEnabled = !magnifierEnabled"
               :aria-pressed="magnifierEnabled.toString()">
           <i class="fas" :class="magnifierEnabled ? 'fa-search-minus' : 'fa-search-plus'"></i>
@@ -110,7 +110,7 @@
 
         <!-- Product Info -->
         <div class="lg:w-1/2">
-            @if($currencyCode !== 'USD')
+          {{--   @if($currencyCode !== 'USD')
             <div class="p-3 mb-4 border border-green-200 rounded-lg bg-green-50">
                 <div class="text-sm text-center text-green-800">
                     @if($isAutoDetected)
@@ -121,6 +121,7 @@
                 </div>
             </div>
             @endif
+            --}}
 
             <div class="flex items-start justify-between mb-4">
                 <h1 class="text-3xl font-bold">{{ $product->name }}</h1>
@@ -128,13 +129,13 @@
                 <button wire:click="toggleWishlist"
                         wire:loading.attr="disabled"
                         wire:target="toggleWishlist"
-                        class="wishlist-btn p-2 transition-colors {{ $isInWishlist ? 'text-yellow-900' : 'text-gray-400 hover:text-yellow-900' }}"
+                        class="wishlist-btn p-2 transition-colors {{ $isInWishlist ? 'text-dark-brown' : 'text-gray-400 hover:text-dark-brown' }}"
                         title="{{ $isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' }}">
                     <svg class="w-8 h-8" fill="{{ $isInWishlist ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                     </svg>
                     <span wire:loading wire:target="toggleWishlist" class="absolute inset-0 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-yellow-900 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-dark-brown animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -151,32 +152,26 @@
                     $displayComparePrice = $displayVariant && $displayVariant->compare_price > 0 ? ($displayVariant->converted_compare_price ?? $displayVariant->compare_price) : 0;
                 @endphp
                 @if($displayComparePrice > 0)
-                <span class="mr-3 text-2xl font-bold text-red-600">
+                <span class="mr-3 text-2xl font-bold text-dark-brown">
                     {{ $currencySymbol }}{{ number_format($displayPrice, 2) }}
                 </span>
                 <span class="text-lg text-gray-500 line-through">
                     {{ $currencySymbol }}{{ number_format($displayComparePrice, 2) }}
                 </span>
-                <span class="px-2 py-1 ml-3 text-sm text-red-800 bg-red-100 rounded">
+                <span class="px-2 py-1 ml-3 text-sm text-dark-brown bg-yellow-100 rounded">
                     Save {{ round(100 - ($displayPrice / $displayComparePrice * 100)) }}%
                 </span>
                 @else
-                <span class="text-2xl font-bold text-red-600">
+                <span class="text-2xl font-bold text-dark-brown">
                     {{ $currencySymbol }}{{ number_format($displayPrice, 2) }}
                 </span>
                 @endif
             </div>
 
             <div class="mb-6">
-       
-
 
                 @if($product->variants->isNotEmpty())
                 <div class="mb-6">
-
-
-                   
-
                     <!-- Size Selection -->
                     @php
                         $sizes = $product->variants->pluck('size')->filter()->unique()->values();
@@ -188,9 +183,9 @@
                             @foreach($sizes as $size)
                                 <button type="button"
                                         wire:click="selectSize('{{ $size }}')"
-                                        class="w-12 h-10 flex items-center justify-center border rounded-md text-sm {{ $selectedSize == $size ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}"
+                                        class="px-2 py-1 flex items-center justify-center border rounded-md text-sm {{ $selectedSize == $size ? 'bg-dark-brown text-white border-dark-brown' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}"
                                         @if($selectedSize == $size) aria-pressed="true" @endif>
-                                    {{ $size }}
+                                    {{ $size }} gm
                                 </button>
                             @endforeach
                         </div>
@@ -205,7 +200,7 @@
                             @foreach($availableWickTypes as $wick)
                                 <button type="button"
                                         wire:click="selectWick('{{ $wick }}')"
-                                        class="px-3 py-2 text-sm border rounded-md {{ $selectedWickType == $wick ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}"
+                                        class="px-2 py-1 text-sm border rounded-md {{ $selectedWickType == $wick ? 'bg-dark-brown text-white border-dark-brown' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}"
                                         @if($selectedWickType == $wick) aria-pressed="true" @endif>
                                     {{ ucfirst($wick) }}
                                 </button>
@@ -220,12 +215,12 @@
                 @if(($selectedVariant && $selectedVariant->stock > 0) || ($product->variants->isEmpty() && $product->quantity > 0))
                     <div class="mb-4">
                         <label class="block mb-2 text-sm font-medium text-gray-700">Quantity:</label>
-                        <div class="flex items-center overflow-hidden border rounded-md">
+                        <div class="flex items-center overflow-hidden">
                             <button type="button"
                                     wire:click="decrementQty"
                                     wire:loading.attr="disabled"
                                     wire:loading.class="opacity-50 cursor-not-allowed"
-                                    class="px-3 py-2 text-gray-600 hover:bg-gray-100 transition-colors {{ $quantity <= 1 ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                    class="px-3 py-2 text-gray-600 hover:bg-white transition-colors {{ $quantity <= 1 ? 'opacity-50 cursor-not-allowed' : '' }}"
                                     {{ $quantity <= 1 ? 'disabled' : '' }}
                                     title="Decrease quantity">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -242,7 +237,7 @@
                                     wire:click="incrementQty"
                                     wire:loading.attr="disabled"
                                     wire:loading.class="opacity-50 cursor-not-allowed"
-                                    class="px-3 py-2 text-gray-600 hover:bg-gray-100 transition-colors {{ $quantity >= ($selectedVariant ? min($selectedVariant->stock, 10) : min($product->quantity, 10)) ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                    class="px-3 py-2 text-gray-600 hover:bg-white transition-colors {{ $quantity >= ($selectedVariant ? min($selectedVariant->stock, 10) : min($product->quantity, 10)) ? 'opacity-50 cursor-not-allowed' : '' }}"
                                     {{ $quantity >= ($selectedVariant ? min($selectedVariant->stock, 10) : min($product->quantity, 10)) ? 'disabled' : '' }}
                                     title="Increase quantity">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,8 +262,17 @@
                         <div>
                             <span class="text-sm text-gray-600">Selected:</span>
                             <span class="ml-2 font-medium">
-                                @if($selectedVariant->wick_type || $selectedVariant->size)
-                                    {{ $selectedVariant->wick_type ? $selectedVariant->size : '' }}{{ $selectedVariant->wick_type && $selectedVariant->size ? ' - ' : '' }}{{ $selectedVariant->size ? $selectedVariant->size : '' }}
+                                {{-- Prefer showing size and wick_type when available --}}
+                                @if($selectedVariant->size || $selectedVariant->wick_type)
+                                    @if($selectedVariant->size)
+                                        {{ $selectedVariant->size }} gm
+                                    @endif
+                                    @if($selectedVariant->size && $selectedVariant->wick_type)
+                                        &nbsp;-&nbsp;
+                                    @endif
+                                    @if($selectedVariant->wick_type)
+                                        {{ ucfirst($selectedVariant->wick_type) }} Wick
+                                    @endif
                                 @else
                                     SKU: {{ $selectedVariant->sku }}
                                 @endif
@@ -276,9 +280,7 @@
                         </div>
                         <span class="text-lg font-bold">{{ $currencySymbol }}{{ number_format($selectedVariant->converted_price ?? $selectedVariant->price, 2) }}</span>
                     </div>
-                    <div class="mt-1 text-sm text-gray-600">
-                        Stock: {{ $selectedVariant->stock }} available
-                    </div>
+
                 </div>
                 @endif
 
@@ -289,7 +291,7 @@
                             wire:loading.attr="disabled"
                             wire:loading.class="opacity-75 cursor-not-allowed"
                             wire:target="addToCart"
-                            class="w-full px-6 py-3 font-semibold text-white transition-colors rounded-lg bg-gray-950 hover:bg-gray-100 hover:text-gray-950 disabled:opacity-50 disabled:cursor-not-allowed">
+                            class="w-full px-6 py-3 font-semibold text-white transition-colors rounded-lg bg-dark-brown hover:bg-yellow-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed">
                         <span wire:loading.remove wire:target="addToCart">Add to Cart</span>
                         <span wire:loading wire:target="addToCart">
                             <svg class="inline-block w-4 h-4 mr-2 -ml-1 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

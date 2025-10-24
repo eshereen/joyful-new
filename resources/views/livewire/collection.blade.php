@@ -106,7 +106,7 @@
                         <div class="flex items-center gap-3">
                             <button
                                 wire:click="decrementQty"
-                                class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100"
+                                class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-white"
                                 {{ $quantity <= 1 ? 'disabled' : '' }}
                             >
                                 <i class="fas fa-minus text-sm"></i>
@@ -114,7 +114,7 @@
                             <span class="text-lg font-medium w-12 text-center">{{ $quantity }}</span>
                             <button
                                 wire:click="incrementQty"
-                                class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100"
+                                class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-white"
                                 {{ $quantity >= ($selectedVariant ? $selectedVariant->stock : 10) ? 'disabled' : '' }}
                             >
                                 <i class="fas fa-plus text-sm"></i>

@@ -3,7 +3,7 @@
 @section('content')
 <div class="min-h-screen bg-gray-50 py-12 my-20">
     <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto">
+        <div class="max-w-4xl lg:min-w-6xl mx-auto">
             <!-- Header -->
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-gray-900 mb-2">Order Confirmation</h1>
@@ -27,9 +27,9 @@
                                 <div>
                                     <h3 class="font-medium text-gray-900">{{ $item->product->name ?? 'Product' }}</h3>
                                     @if($item->variant)
-                                        <p class="text-sm text-gray-600">{{ $item->variant->color }}, {{ $item->variant->size }}</p>
+                                        <p class="text-sm text-gray-600">{{ $item->variant->wick_type }} wick, {{ $item->variant->size }}gm</p>
                                     @endif
-                                    <p class="text-sm text-gray-500">SKU: {{ $item->product->sku ?? 'N/A' }}</p>
+
                                 </div>
                             </div>
                             <div class="text-right">
@@ -59,13 +59,13 @@
                                     </div>
                                     <div class="flex justify-between">
                                         <span class="text-gray-600">Status:</span>
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-dark-brown">
                                             {{ ucfirst($order->status->value) }}
                                         </span>
                                     </div>
                                     <div class="flex justify-between">
                                         <span class="text-gray-600">Payment Status:</span>
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-dark-brown">
                                             {{ ucfirst($order->payment_status->value) }}
                                         </span>
                                     </div>
@@ -163,10 +163,17 @@
                             </div>
                             @endif
 
-                            @if($order->discount_amount > 0)
+                            @if($order->coupon)
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Coupon ({{ $order->coupon->code }}):</span>
+                                <span class="text-green-600">-{{ $currencyInfo['currency_symbol'] ?? '$' }}{{ number_format($order->coupon->calculateDiscount($order->subtotal), 2) }}</span>
+                            </div>
+                            @endif
+
+                            @if($order->discount_amount > 0 && !$order->coupon)
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Discount:</span>
-                                <span class="text-gray-900">-{{ $currencyInfo['currency_symbol'] ?? '$' }}{{ number_format($order->discount_amount, 2) }}</span>
+                                <span class="text-green-600">-{{ $currencyInfo['currency_symbol'] ?? '$' }}{{ number_format($order->discount_amount, 2) }}</span>
                             </div>
                             @endif
 
@@ -178,20 +185,12 @@
                             </div>
                         </div>
 
-                        @if($currencyInfo['currency_code'] !== 'USD')
-                        <div class="mt-4 text-sm text-gray-500 text-center p-2 bg-blue-50 rounded">
-                            @if($currencyInfo['is_auto_detected'])
-                                Prices automatically converted to {{ $currencyInfo['currency_code'] }} ({{ $currencyInfo['currency_symbol'] }}) based on your location
-                            @else
-                                Prices converted to {{ $currencyInfo['currency_code'] }} ({{ $currencyInfo['currency_symbol'] }})
-                            @endif
-                        </div>
-                        @endif
+
 
                         <!-- Action Buttons -->
                         <div class="mt-6 space-y-3">
                             <a href="{{ route('home') }}"
-                               class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors">
+                               class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-dark-brown hover:bg-yellow-700 transition-colors">
                                 Continue Shopping
                             </a>
 

@@ -151,4 +151,13 @@ class Order extends Model
     {
         return $this->belongsTo(Coupon::class);
     }
+
+    public function state()
+    {
+        return $this->belongsTo(State::class);
+    }
+    public function shipping()
+    {
+        return $this->belongsTo(Shipping::class);
+    }
 }

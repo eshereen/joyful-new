@@ -11,7 +11,62 @@ use App\Services\CountryCurrencyService;
 use Illuminate\Support\Facades\Log;
 
 class CheckoutForm extends Component
-{
+ {
+    // Shipping fee for selected state
+    public $shippingFee = 0;
+    // Subtotal (products price)
+    public $subtotal = 0;
+    // Total (subtotal + shipping)
+    public $total = 0;
+    public function updatedBillingState($stateName)
+    {
+        // Find the state by name
+        $state = \App\Models\State::where('name', $stateName)->first();
+        if ($state) {
+            $shipping = \App\Models\Shipping::where('state_id', $state->id)->first();
+            $this->shippingFee = $shipping && $shipping->price !== null ? (float)$shipping->price : 0;
+        } else {
+            $this->shippingFee = 0;
+        }
+        $this->updateTotals();
+    }
+
+    public function updatedShippingState($stateName)
+    {
+        // Find the state by name
+        $state = \App\Models\State::where('name', $stateName)->first();
+        if ($state) {
+            $shipping = \App\Models\Shipping::where('state_id', $state->id)->first();
+            $this->shippingFee = $shipping && $shipping->price !== null ? (float)$shipping->price : 0;
+        } else {
+            $this->shippingFee = 0;
+        }
+        $this->updateTotals();
+    }
+
+    public function updateTotals()
+    {
+        // Calculate subtotal (products price)
+        $cartService = app(\App\Services\CartService::class);
+        $this->subtotal = (float) $cartService->getSubtotal();
+
+        // Calculate total: subtotal + shipping - coupon discount - loyalty discount
+        $this->total = $this->subtotal + $this->shippingFee - $this->couponDiscount - $this->loyaltyDiscount;
+
+        // Ensure total is not negative
+        if ($this->total < 0) {
+            $this->total = 0;
+        }
+
+        // Dispatch shipping update to OrderSummary component
+        $this->dispatch('shipping-updated', $this->shippingFee);
+    }
+
+    // States for selected country
+    public $states = [];
+    // States for selected shipping country
+    public $shippingStates = [];
+
     // Customer Information
     public $firstName = '';
     public $lastName = '';
@@ -43,50 +98,155 @@ class CheckoutForm extends Component
     public $currentCurrency = 'USD';
     public $currentSymbol = '$';
 
-        // Loyalty points discount
+    // Loyalty points discount
     public $loyaltyDiscount = 0;
     public $loyaltyPointsApplied = 0;
 
-    public function mount()
-{
-    // Get current country from session or default to Egypt (EG)
-    $countryCode = session('checkout_country', 'EG');
-    $country = Country::where('code', $countryCode)->first();
+    // Coupon related fields
+    public $couponCode = '';
+    public $appliedCouponCode = null;
+    public $couponDiscount = 0;
 
-    if ($country) {
-        // Set both billing and shipping countries
-        $this->billingCountry = $country->id;
-        $this->shippingCountry = $country->id;
+    // Order notes
+    public $notes = '';
 
-        // Update session with the country code
-        session(['checkout_country' => $countryCode]);
+    /**
+     * Apply coupon based on the entered coupon code.
+     */
+    public function applyCoupon()
+    {
+        $this->validate([
+            'couponCode' => 'required|string',
+        ]);
 
-        // Load payment methods and currency info
-        $this->updatePaymentMethods($countryCode);
+        $code = strtoupper(trim($this->couponCode));
 
-        // Only update currency if not already set in session
-        if (!session('currency_initialized', false)) {
-            $this->updateCurrencyInfo($countryCode);
-        } else {
-            $currencyService = app(CountryCurrencyService::class);
-            $currencyInfo = $currencyService->getCurrentCurrencyInfo();
-            $this->currentCurrency = $currencyInfo['currency_code'];
-            $this->currentSymbol = $currencyInfo['currency_symbol'];
+        try {
+            $coupon = \App\Models\Coupon::where('code', $code)->first();
+
+            if (!$coupon) {
+                session()->flash('error', 'Coupon not found.');
+                return;
+            }
+
+            if (!$coupon->isValid()) {
+                session()->flash('error', 'Coupon is not valid or expired.');
+                return;
+            }
+
+            // Get cart subtotal in EGP
+            $cartService = app(\App\Services\CartService::class);
+            $subtotalEGP = (float) $cartService->getSubtotal();
+
+            // All coupon values and min_order_amount are now in EGP
+            if ($coupon->type === 'percentage') {
+                if (!is_null($coupon->min_order_amount) && $subtotalEGP < (float) $coupon->min_order_amount) {
+                    session()->flash('error', 'Coupon does not meet the minimum order amount.');
+                    return;
+                }
+                $discount = $subtotalEGP * ((float) $coupon->value / 100);
+            } else {
+                // Fixed amount coupons (value in EGP)
+                $discount = (float) $coupon->value;
+            }
+
+            if ($discount <= 0) {
+                session()->flash('error', 'Coupon does not apply to the current total.');
+                return;
+            }
+
+            $this->appliedCouponCode = $coupon->code;
+            $this->couponDiscount = round($discount, 2);
+
+            // Store in session for order processing
+            session(['applied_coupon_code' => $this->appliedCouponCode]);
+            session(['applied_coupon_id' => $coupon->id]);
+
+            session()->flash('success', 'Coupon applied successfully!');
+        } catch (Exception $e) {
+            Log::error('Error applying coupon', ['error' => $e->getMessage()]);
+            session()->flash('error', 'Failed to apply coupon.');
         }
     }
 
-    // Check stock availability and show warnings
-    $this->checkStockAvailability();
-}
+    /**
+     * Remove any applied coupon.
+     */
+    public function removeCoupon()
+    {
+        $this->appliedCouponCode = null;
+        $this->couponDiscount = 0.0;
+        session()->forget(['applied_coupon_code', 'applied_coupon_id']);
+        session()->flash('success', 'Coupon removed.');
+    }
 
-   
+    public function mount()
+    {
+        // Get current country from session or default to Egypt (EG)
+        $countryCode = session('checkout_country', 'EG');
+        $country = Country::where('code', $countryCode)->first();
+
+        if ($country) {
+            // Set both billing and shipping countries
+            $this->billingCountry = $country->id;
+            $this->shippingCountry = $country->id;
+
+            // Load states for billing and shipping country
+            $this->loadStates($this->billingCountry);
+            $this->loadShippingStates($this->shippingCountry);
+
+            // Update session with the country code
+            session(['checkout_country' => $countryCode]);
+
+            // Load payment methods and currency info
+            $this->updatePaymentMethods($countryCode);
+
+            // Only update currency if not already set in session
+            if (!session('currency_initialized', false)) {
+                $this->updateCurrencyInfo($countryCode);
+            } else {
+                $currencyService = app(CountryCurrencyService::class);
+                $currencyInfo = $currencyService->getCurrentCurrencyInfo();
+                $this->currentCurrency = $currencyInfo['currency_code'];
+                $this->currentSymbol = $currencyInfo['currency_symbol'];
+            }
+        }
+
+        // Calculate initial totals
+        $this->updateTotals();
+        // Check stock availability and show warnings
+        $this->checkStockAvailability();
+    }
+    public function loadShippingStates($countryId)
+    {
+        if ($countryId) {
+            $this->shippingStates = \App\Models\State::where('country_id', $countryId)->orderBy('name')->get();
+        } else {
+            $this->shippingStates = [];
+        }
+    }
+
+    public function loadStates($countryId)
+    {
+        if ($countryId) {
+            $this->states = \App\Models\State::where('country_id', $countryId)->orderBy('name')->get();
+        } else {
+            $this->states = [];
+        }
+    }
+
+
     public function updatedBillingCountry($countryId)
     {
+        $this->loadStates($countryId);
+        $this->billingState = '';
         $this->handleCountryChange($countryId, 'billing');
     }
 
     public function updatedShippingCountry($countryId)
     {
+        $this->loadShippingStates($countryId);
+        $this->shippingState = '';
         $this->handleCountryChange($countryId, 'shipping');
     }
 
@@ -99,6 +259,11 @@ class CheckoutForm extends Component
             $this->shippingCity = $this->billingCity;
             $this->shippingAddress = $this->billingAddress;
             $this->shippingBuildingNumber = $this->billingBuildingNumber;
+
+            // Update shipping fee based on billing state
+            if ($this->billingState) {
+                $this->updatedShippingState($this->billingState);
+            }
 
             if ($this->billingCountry) {
                 $this->handleCountryChange($this->billingCountry, 'shipping_from_billing');
@@ -122,7 +287,7 @@ class CheckoutForm extends Component
         // Update currency
         $this->updateCurrencyInfo($country->code);
 
-                // Dispatch events to other components
+        // Dispatch events to other components
         $this->dispatch('country-changed', $country->code);
         $this->dispatch('currency-changed', $this->currentCurrency);
         $this->dispatch('global-currency-changed', $this->currentCurrency);
@@ -270,7 +435,6 @@ class CheckoutForm extends Component
             if (!$this->creditCardAvailable) {
                 $this->paypalPaymentType = 'credit_card';
             }
-
         } catch (Exception $e) {
 
             // Fallback to default methods
@@ -280,7 +444,7 @@ class CheckoutForm extends Component
         }
     }
 
-        protected function updateCurrencyInfo($countryCode)
+    protected function updateCurrencyInfo($countryCode)
     {
         try {
             $currencyService = app(CountryCurrencyService::class);
@@ -296,7 +460,6 @@ class CheckoutForm extends Component
             $currencyInfo = $currencyService->getCurrentCurrencyInfo();
             $this->currentCurrency = $currencyInfo['currency_code'];
             $this->currentSymbol = $currencyInfo['currency_symbol'];
-
         } catch (Exception $e) {
 
             // Keep current currency on error
@@ -382,7 +545,7 @@ class CheckoutForm extends Component
         $this->updateCurrencyInfo($countryCode);
     }
 
-        #[On('loyaltyPointsApplied')]
+    #[On('loyaltyPointsApplied')]
     public function handleLoyaltyPointsApplied($data)
     {
         $this->loyaltyPointsApplied = $data['points'];
@@ -404,6 +567,24 @@ class CheckoutForm extends Component
     {
         // This is just a preview update, don't change the actual applied points
         // The discount will be shown in the order summary but not stored until applied
+    }
+
+    #[On('coupon-applied')]
+    public function handleCouponApplied($data)
+    {
+        Log::info('CheckoutForm: Received coupon-applied event', $data);
+        $this->appliedCouponCode = $data['code'] ?? null;
+        $this->couponDiscount = (float) ($data['discount'] ?? 0);
+        $this->updateTotals();
+    }
+
+    #[On('coupon-removed')]
+    public function handleCouponRemoved()
+    {
+        Log::info('CheckoutForm: Received coupon-removed event');
+        $this->appliedCouponCode = null;
+        $this->couponDiscount = 0;
+        $this->updateTotals();
     }
 
     // Method to validate all form data
@@ -442,8 +623,13 @@ class CheckoutForm extends Component
                 'payment_method' => $this->selectedPaymentMethod,
                 'paypal_payment_type' => $this->paypalPaymentType,
                 'currency' => $this->currentCurrency,
+                'shipping_amount' => $this->shippingFee,
+                'subtotal' => $this->subtotal,
+                'total_amount' => $this->total,
+                'coupon_discount' => $this->couponDiscount,
                 'loyalty_discount' => $this->loyaltyDiscount,
                 'loyalty_points_applied' => $this->loyaltyPointsApplied,
+                'notes' => $this->notes,
             ];
 
             // Clear any previous session data and set new data
@@ -464,7 +650,6 @@ class CheckoutForm extends Component
                 document.body.appendChild(form);
                 form.submit();
             ');
-
         } catch (Exception $e) {
 
             // Check if it's a stock-related error
@@ -581,7 +766,7 @@ class CheckoutForm extends Component
                     throw new \Exception("Product variant not found: {$variantId}");
                 }
 
-                                if ($variant->stock < $requestedQuantity) {
+                if ($variant->stock < $requestedQuantity) {
                     $product = \App\Models\Product::find($productId);
                     $availableStock = $variant->stock;
 
@@ -598,7 +783,7 @@ class CheckoutForm extends Component
                     throw new \Exception("Product not found: {$productId}");
                 }
 
-                                if ($product->quantity < $requestedQuantity) {
+                if ($product->quantity < $requestedQuantity) {
                     $availableStock = $product->quantity;
 
                     if ($availableStock <= 0) {

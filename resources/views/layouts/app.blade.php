@@ -12,6 +12,9 @@
     <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
 
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 
 
     <!-- Livewire Styles -->
@@ -67,22 +70,20 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <!--Favicons-->
-    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}" />
-    <link rel="icon" type="image/png" sizes="96x96" href="{{ asset('favicon-96x96.png') }}" />
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}" />
+
 
 <!--google fonts-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300..800&family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
 
      <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        'playfair': ['"Playfair Display"', 'serif'],
-                        'poppins': ['Poppins', 'sans-serif'],
+                        'something': ['"something"', 'Arial', 'Helvetica', 'sans-serif'],
+                        'cinzel': ['"Cinzel"', 'serif'],
                     }
                 }
             }
@@ -92,21 +93,8 @@
 
 
 
-.funnel-display-<uniquifier> {
-  font-family: "Funnel Display", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: <weight>;
-  font-style: normal;
-}
-
-.orbitron-<uniquifier> {
-  font-family: "Orbitron", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 800;
-  font-style: normal;
-}
 h1,h2,h3,h4,h5,h6{
-    font-family: "Orbitron", serif;
+    font-family: "something", 'Arial', 'Helvetica', sans-serif;
     font-optical-sizing: auto;
     font-weight: 800;
     font-style: normal;
@@ -114,7 +102,7 @@ h1,h2,h3,h4,h5,h6{
     text-transform: uppercase;
 }
 p,a,span,li,ul,ol,button{
-    font-family: "Funnel Display", serif;
+    font-family: "Cinzel", serif;
     font-optical-sizing: auto;
     font-weight: 300;
     font-style: normal;
@@ -135,7 +123,7 @@ x-transition:leave-end="opacity-0"
 class="fixed inset-0 z-50 flex items-center justify-center bg-white"
 style="background: rgba(255,255,255,0.95);"
 >
-<img src="/imgs/Joyful_logo_black.png" alt="Loading..." class="w-32  animate-pulse">
+<img src="/imgs/logo.png" alt="Loading..." class="w-64 animate-pulse">
 </div>
     @include('layouts.navbar')
     <!-- Notification System -->
@@ -445,7 +433,7 @@ style="background: rgba(255,255,255,0.95);"
                 // View Cart button
                 const cartButton = document.createElement('button');
                 cartButton.textContent = 'View Cart';
-                cartButton.className = 'px-4 py-2 bg-white text-red-600 font-bold rounded hover:bg-gray-100 transition-colors';
+                cartButton.className = 'px-4 py-2 bg-white text-red-600 font-bold rounded hover:bg-white transition-colors';
                 cartButton.onclick = () => {
                     window.location.href = '/cart';
                 };
@@ -453,7 +441,7 @@ style="background: rgba(255,255,255,0.95);"
                 // Continue Shopping button
                 const shopButton = document.createElement('button');
                 shopButton.textContent = 'Continue Shopping';
-                shopButton.className = 'px-4 py-2 bg-white text-red-600 font-bold rounded hover:bg-gray-100 transition-colors';
+                shopButton.className = 'px-4 py-2 bg-white text-red-600 font-bold rounded hover:bg-white transition-colors';
                 shopButton.onclick = () => {
                     window.location.href = '/';
                 };
@@ -461,7 +449,7 @@ style="background: rgba(255,255,255,0.95);"
                 // Close button
                 const closeButton = document.createElement('button');
                 closeButton.textContent = '✕';
-                closeButton.className = 'px-3 py-2 bg-white text-red-600 font-bold rounded hover:bg-gray-100 transition-colors';
+                closeButton.className = 'px-3 py-2 bg-white text-red-600 font-bold rounded hover:bg-white transition-colors';
                 closeButton.style.position = 'absolute';
                 closeButton.style.top = '10px';
                 closeButton.style.right = '10px';

@@ -42,7 +42,7 @@
         <div class="py-1">
             <!-- Auto-detected currency info -->
             @if($isAutoDetected && $detectedCountry)
-            <div class="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
+            <div class="px-4 py-2 text-xs text-gray-500 border-b border-white">
                 <div class="flex items-center">
                     <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -66,7 +66,7 @@
                 'CHF' => 'CHF CHF - Swiss Franc',
             ] as $code => $label)
                 <button type="button" onclick="changeCurrencyManual('{{ $code }}')" @click="open = false"
-                        class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 {{ $currentCurrency === $code ? 'bg-gray-50 text-gray-900' : 'text-gray-700' }}">
+                        class="w-full text-left px-4 py-2 text-sm hover:bg-white {{ $currentCurrency === $code ? 'bg-gray-50 text-gray-900' : 'text-gray-700' }}">
                     <div class="flex items-center justify-between">
                         <span class="flex items-center">
                             <span class="text-lg mr-2">{{ explode(' ', $label)[0] }}</span>
@@ -83,7 +83,7 @@
 
             <!-- Reset -->
             @if($isAutoDetected && $detectedCountry && $currentCurrency !== Session::get('detected_currency', 'USD'))
-            <div class="border-t border-gray-100">
+            <div class="border-t border-white">
                 <button type="button" wire:click="resetToDetected()" @click="open = false"
                         class="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50">
                     <div class="flex items-center">

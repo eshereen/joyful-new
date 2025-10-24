@@ -28641,6 +28641,44 @@ namespace App\Filament\Resources\Products\RelationManagers {
             }
     }
 
+namespace App\Filament\Resources\Shippings\Pages {
+    /**
+     */
+    class CreateShipping extends \Filament\Resources\Pages\CreateRecord {
+            }
+    /**
+     */
+    class EditShipping extends \Filament\Resources\Pages\EditRecord {
+            }
+    /**
+     */
+    class ListShippings extends \Filament\Resources\Pages\ListRecords {
+            }
+    /**
+     */
+    class ViewShipping extends \Filament\Resources\Pages\ViewRecord {
+            }
+    }
+
+namespace App\Filament\Resources\States\Pages {
+    /**
+     */
+    class CreateState extends \Filament\Resources\Pages\CreateRecord {
+            }
+    /**
+     */
+    class EditState extends \Filament\Resources\Pages\EditRecord {
+            }
+    /**
+     */
+    class ListStates extends \Filament\Resources\Pages\ListRecords {
+            }
+    /**
+     */
+    class ViewState extends \Filament\Resources\Pages\ViewRecord {
+            }
+    }
+
 namespace App\Filament\Resources\Users\Pages {
     /**
      */

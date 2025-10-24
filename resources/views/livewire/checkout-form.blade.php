@@ -7,25 +7,25 @@
                 <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
                 <input type="text" wire:model.live="firstName" id="first_name" name="customer[first_name]" required
                        class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                @error('firstName') <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p> @enderror
+                @error('firstName') <p class="text-dark-brown text-sm mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
                 <input type="text" wire:model.live="lastName" id="last_name" name="customer[last_name]" required
                        class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                @error('lastName') <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p> @enderror
+                @error('lastName') <p class="text-dark-brown text-sm mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
                 <input type="email" wire:model.live="email" id="email" name="customer[email]" required
                        class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                @error('email') <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p> @enderror
+                @error('email') <p class="text-dark-brown text-sm mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label for="phone_number" class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
                 <input type="tel" wire:model.live="phoneNumber" id="phone_number" name="customer[phone_number]" required
                        class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                @error('phoneNumber') <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p> @enderror
+                @error('phoneNumber') <p class="text-dark-brown text-sm mt-1">{{ $message }}</p> @enderror
             </div>
         </div>
     </div>
@@ -51,31 +51,37 @@
                         <option value="{{ $country->id }}">{{ $country->name }}</option>
                     @endforeach
                 </select>
-                @error('billingCountry') <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p> @enderror
+                @error('billingCountry') <p class="text-dark-brown text-sm mt-1">{{ $message }}</p> @enderror
             </div>
-            <div class="md:col-span-2">
-                <label for="billing_address" class="block text-sm font-medium text-gray-700 mb-1">Street Address *</label>
-                <input type="text" wire:model.live="billingAddress" id="billing_address" name="billing_address[address]" required
-                       class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                @error('billingAddress') <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p> @enderror
-            </div>
+
             <div>
                 <label for="billing_state" class="block text-sm font-medium text-gray-700 mb-1">State/Province *</label>
-                <input type="text" wire:model.live="billingState" id="billing_state" name="billing_address[state]" required
-                       class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                @error('billingState') <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p> @enderror
+                <select wire:model.live="billingState" id="billing_state" name="billing_address[state]" required
+                        class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    <option value="">Select a state</option>
+                    @foreach($states as $state)
+                        <option value="{{ $state->name }}">{{ $state->name }}</option>
+                    @endforeach
+                </select>
+                @error('billingState') <p class="text-dark-brown text-sm mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label for="billing_city" class="block text-sm font-medium text-gray-700 mb-1">City *</label>
                 <input type="text" wire:model.live="billingCity" id="billing_city" name="billing_address[city]" required
                        class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                @error('billingCity') <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p> @enderror
+                @error('billingCity') <p class="text-dark-brown text-sm mt-1">{{ $message }}</p> @enderror
+            </div>
+               <div class="md:col-span-2">
+                <label for="billing_address" class="block text-sm font-medium text-gray-700 mb-1">Street Address *</label>
+                <input type="text" wire:model.live="billingAddress" id="billing_address" name="billing_address[address]" required
+                       class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                @error('billingAddress') <p class="text-dark-brown text-sm mt-1">{{ $message }}</p> @enderror
             </div>
             <div class="md:col-span-2">
                 <label for="billing_building_number" class="block text-sm font-medium text-gray-700 mb-1">Building Number (Optional)</label>
                 <input type="text" wire:model.live="billingBuildingNumber" id="billing_building_number" name="billing_address[building_number]"
                        class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                @error('billingBuildingNumber') <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p> @enderror
+                @error('billingBuildingNumber') <p class="text-dark-brown text-sm mt-1">{{ $message }}</p> @enderror
             </div>
         </div>
     </div>
@@ -94,38 +100,64 @@
                             <option value="{{ $country->id }}">{{ $country->name }}</option>
                         @endforeach
                     </select>
-                    @error('shippingCountry') <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p> @enderror
+                    @error('shippingCountry') <p class="text-dark-brown text-sm mt-1">{{ $message }}</p> @enderror
                 </div>
-                <div class="md:col-span-2">
-                    <label for="shipping_address" class="block text-sm font-medium text-gray-700 mb-1">Street Address *</label>
-                    <input type="text" wire:model.live="shippingAddress" id="shipping_address" name="shipping_address[address]" required
-                           class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                    @error('shippingAddress') <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p> @enderror
-                </div>
+
                 <div>
                     <label for="shipping_state" class="block text-sm font-medium text-gray-700 mb-1">State/Province *</label>
-                    <input type="text" wire:model.live="shippingState" id="shipping_state" name="shipping_address[state]" required
-                           class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                    @error('shippingState') <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p> @enderror
+                    <select wire:model.live="shippingState" id="shipping_state" name="shipping_address[state]" required
+                            class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        <option value="">Select a state</option>
+                        @foreach($shippingStates as $state)
+                            <option value="{{ $state->name }}">{{ $state->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('shippingState') <p class="text-dark-brown text-sm mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label for="shipping_city" class="block text-sm font-medium text-gray-700 mb-1">City *</label>
                     <input type="text" wire:model.live="shippingCity" id="shipping_city" name="shipping_address[city]" required
                            class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                    @error('shippingCity') <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p> @enderror
+                    @error('shippingCity') <p class="text-dark-brown text-sm mt-1">{{ $message }}</p> @enderror
+                </div>
+                 <div class="md:col-span-2">
+                    <label for="shipping_address" class="block text-sm font-medium text-gray-700 mb-1">Street Address *</label>
+                    <input type="text" wire:model.live="shippingAddress" id="shipping_address" name="shipping_address[address]" required
+                           class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    @error('shippingAddress') <p class="text-dark-brown text-sm mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="md:col-span-2">
                     <label for="shipping_building_number" class="block text-sm font-medium text-gray-700 mb-1">Building Number (Optional)</label>
                     <input type="text" wire:model.live="shippingBuildingNumber" id="shipping_building_number" name="shipping_address[building_number]"
                            class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                    @error('shippingBuildingNumber') <p class="text-yellow-900 text-sm mt-1">{{ $message }}</p> @enderror
+                    @error('shippingBuildingNumber') <p class="text-dark-brown text-sm mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
         </div>
     @endif
 
+    <!-- Order Notes -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-6">Additional Information</h2>
+
+        <div class="mb-4">
+            <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Order Notes (Optional)</label>
+            <textarea id="notes"
+                      wire:model.live="notes"
+                      name="notes"
+                      rows="4"
+                      placeholder="Add any special instructions or notes for your order..."
+                      class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"></textarea>
+            @error('notes')
+                <p class="text-dark-brown text-sm mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+    </div>
+
     <!-- Payment Methods Selector -->
     @livewire('payment-methods-selector')
+
+
 
 
         <!-- Submit Button -->
@@ -134,7 +166,7 @@
                 wire:click="submitForm"
                 wire:loading.attr="disabled"
                 wire:target="submitForm"
-                class="w-full bg-red-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                class="w-full bg-dark-brown text-white font-bold py-3 px-6 rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
             <span wire:loading.remove wire:target="submitForm">
                 {{ Auth::check() ? 'Place Order' : 'Place Order as Guest' }}
             </span>
@@ -180,8 +212,13 @@
         <input type="hidden" name="shipping_building_number" value="{{ $useBillingForShipping ? ($billingBuildingNumber ?: 'N/A') : ($shippingBuildingNumber ?: 'N/A') }}">
         <input type="hidden" name="use_billing_for_shipping" value="{{ $useBillingForShipping ? '1' : '0' }}">
         <input type="hidden" name="payment_method" value="{{ $selectedPaymentMethod }}">
-                        <input type="hidden" name="paypal_payment_type" value="credit_card">
-        <input type="hidden" name="currency" value="{{ $currentCurrency }}">
+        <input type="hidden" name="paypal_payment_type" value="credit_card">
+    <input type="hidden" name="currency" value="EGP">
+        @if($appliedCouponCode)
+        <input type="hidden" name="coupon_code" value="{{ $appliedCouponCode }}">
+        <input type="hidden" name="coupon_discount" value="{{ $couponDiscount }}">
+        @endif
+        <input type="hidden" name="notes" value="{{ $notes }}">
     </form>
 
 </div>

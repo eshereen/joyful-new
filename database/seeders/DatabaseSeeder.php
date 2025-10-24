@@ -17,12 +17,12 @@ class DatabaseSeeder extends Seeder
             //  // Users
             //  //User::factory(10)->create();
             //
-            //  User::factory()->create([
-            //      'name' => 'admin',
-            //      'email' => 'admin@Joyful.medsite.dev',
-            //      'password' => bcrypt('password'), // Ensure to set a password securely
-            //      'is_admin' => true,
-            //  ]);
+             User::factory()->create([
+                 'name' => 'admin',
+                 'email' => 'admin@Joyful.medsite.dev',
+                 'password' => bcrypt('password'), // Ensure to set a password securely
+                 'is_admin' => true,
+             ]);
             //
             //  // Coupon for new user
             //  Coupon::factory()->create([
@@ -62,7 +62,8 @@ class DatabaseSeeder extends Seeder
             // });
 
             // Other seeders
-            $this->call(CountriesTableSeeder::class);
+           //$this->call(CountriesTableSeeder::class);
+             //$this->call(StateSeeder::class);
             // $this->call(OrderSeeder::class);
             // $this->call(OrderWithPaymentsSeeder::class);
       }

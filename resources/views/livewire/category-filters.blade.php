@@ -25,7 +25,7 @@
                             id="category_{{ $category->id }}"
                             wire:click="toggleCategorySelection({{ $category->id }})"
                             {{ $this->isCategorySelected($category->id) ? 'checked' : '' }}
-                            class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                            class="w-4 h-4 text-red-600 bg-white border-gray-300 rounded focus:ring-red-500 focus:ring-2"
                         >
                         <label for="category_{{ $category->id }}" class="font-medium text-gray-700 cursor-pointer">
                             {{ $category->name }}
@@ -59,7 +59,7 @@
                                     id="subcategory_{{ $subcategory->id }}"
                                     wire:click="toggleSubcategorySelection({{ $subcategory->id }}, {{ $category->id }})"
                                     {{ $this->isSubcategorySelected($subcategory->id) ? 'checked' : '' }}
-                                    class="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
+                                    class="w-4 h-4 text-green-600 bg-white border-gray-300 rounded focus:ring-green-500 focus:ring-2"
                                 >
                                 <label for="subcategory_{{ $subcategory->id }}" class="text-sm text-gray-600 cursor-pointer">
                                     {{ $subcategory->name }}

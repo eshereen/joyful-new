@@ -151,6 +151,9 @@ class CheckoutController extends Controller
             'currency' => 'required|string|max:3',
             'loyalty_discount' => 'nullable|numeric|min:0',
             'loyalty_points_applied' => 'nullable|integer|min:0',
+            'notes' => 'nullable|string|max:1000',
+            'shipping_amount' => 'nullable|numeric|min:0',
+            'coupon_discount' => 'nullable|numeric|min:0',
         ]);
 
 
@@ -344,6 +347,9 @@ class CheckoutController extends Controller
             'payment_method' => 'required|string|in:paypal,paymob,cash_on_delivery',
             'paypal_payment_type' => 'nullable|string|in:paypal_account,credit_card',
             'currency' => 'required|string|max:3',
+            'notes' => 'nullable|string|max:1000',
+            'shipping_amount' => 'nullable|numeric|min:0',
+            'coupon_discount' => 'nullable|numeric|min:0',
         ]);
 
 
@@ -583,12 +589,27 @@ class CheckoutController extends Controller
         // Convert prices to local currency
         $subtotal = $this->currencyService->convertFromUSD($this->cartService->getSubtotal(), $currencyCode);
         $taxAmount = $this->currencyService->convertFromUSD($this->cartService->getTaxAmount(), $currencyCode);
-        $shippingAmount = $this->currencyService->convertFromUSD($this->cartService->getShippingCost(), $currencyCode);
-        $totalAmount = $this->currencyService->convertFromUSD($this->cartService->getTotal(), $currencyCode);
 
-        // Apply loyalty discount if provided - already in local currency
+        // Use shipping amount from session data (calculated by CheckoutForm based on selected state)
+        $shippingAmountFromSession = $data['shipping_amount'] ?? 0;
+        $shippingAmount = $this->currencyService->convertFromUSD($shippingAmountFromSession, $currencyCode);
+
+        // Log shipping calculation
+        Log::info('Shipping calculation in order creation', [
+            'shipping_amount_from_session' => $shippingAmountFromSession,
+            'shipping_amount_converted' => $shippingAmount,
+            'target_currency' => $currencyCode,
+            'billing_state' => $data['billing_state'] ?? 'N/A',
+            'shipping_state' => $data['shipping_state'] ?? 'N/A'
+        ]);
+
+        // Calculate total with proper shipping
+        $totalAmount = $subtotal + $taxAmount + $shippingAmount;
+
+        // Apply discounts if provided - already in local currency
         $loyaltyDiscountLocal = $data['loyalty_discount'] ?? 0;
-        $finalTotal = max(0, $totalAmount - $loyaltyDiscountLocal);
+        $couponDiscountLocal = $data['coupon_discount'] ?? 0;
+        $finalTotal = max(0, $totalAmount - $loyaltyDiscountLocal - $couponDiscountLocal);
 
         // Log loyalty discount application
         if ($loyaltyDiscountLocal > 0) {
@@ -623,7 +644,7 @@ class CheckoutController extends Controller
             'subtotal' => $subtotal,
             'tax_amount' => $taxAmount,
             'shipping_amount' => $shippingAmount,
-            'discount_amount' => ($data['coupon_discount'] ?? 0) + $loyaltyDiscountLocal,
+            'discount_amount' => $couponDiscountLocal + $loyaltyDiscountLocal,
             'total_amount' => $finalTotal,
             'currency' => $currencyCode,
             'payment_method' => $data['payment_method'],

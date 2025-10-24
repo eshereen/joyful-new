@@ -20,13 +20,19 @@
                 </div>
             @endif
 
+            @if(session('success'))
+                <div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                    {{ session('success') }}
+                </div>
+            @endif
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Checkout Form -->
                 <div class="lg:col-span-2">
                     <!-- Unified Checkout Form -->
                     <div class="space-y-6">
                         @livewire('checkout-form')
-                        @include('checkout.partials.order-notes')
+
                     </div>
                 </div>
                 <!-- Order Summary -->
@@ -39,7 +45,7 @@
                         <!-- Continue Shopping -->
                         <div class="mt-6">
                             <a href="{{ route('products.index') }}"
-                               class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                               class="w-full inline-flex justify-center items-center px-4 py-2 border border-dark-brown text-sm font-medium rounded-md text-gray-900 bg-white hover:bg-gray-50 transition-colors">
                                 Continue Shopping
                             </a>
                         </div>

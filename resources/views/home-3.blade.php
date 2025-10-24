@@ -29,7 +29,7 @@
                     <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 transition-colors">
                         SHOP WOMEN
                     </button>
-                    <button class="bg-white hover:bg-gray-100 text-black font-bold py-3 px-8 transition-colors">
+                    <button class="bg-white hover:bg-white text-black font-bold py-3 px-8 transition-colors">
                         SHOP MEN
                     </button>
                 </div>
@@ -235,7 +235,7 @@
     </section>
 
     <!-- Three Image Block Section -->
-    <section class="py-16 px-4 bg-gray-100">
+    <section class="py-16 px-4 bg-white">
         <div class="container mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <!-- RUN Block -->

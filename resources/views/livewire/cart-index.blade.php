@@ -13,65 +13,52 @@
     <div class="flex flex-col lg:flex-row gap-8">
         <!-- Cart Items -->
         <div class="lg:w-2/3">
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto shadow-sm border border-gray-200 rounded-lg">
                 @if($cartCount > 0)
-                    <table class="w-full">
-                        <thead class="border-b border-gray-200">
+                    <table class="w-full min-w-[600px]">
+                        <thead class="bg-gray-50 border-b border-gray-200">
                             <tr class="text-left text-sm text-gray-500">
-                                <th class="pb-4 font-medium">Product</th>
-                                <th class="pb-4 font-medium">Price</th>
-                                <th class="pb-4 font-medium">Quantity</th>
-                                <th class="pb-4 font-medium">Total</th>
-                                <th class="pb-4 font-medium"></th>
+                                <th class="pb-4 pt-4 px-4 font-medium min-w-[200px]">Product</th>
+                                <th class="pb-4 pt-4 px-4 font-medium min-w-[120px]">Quantity</th>
+                                <th class="pb-4 pt-4 px-4 font-medium min-w-[100px]">Total</th>
+                                <th class="pb-4 pt-4 px-4 font-medium min-w-[60px]"></th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($cartItems as $item)
-                                <tr class="border-b border-gray-100">
-                                    <td class="py-6">
-                                        <div class="flex items-center">
-                                            <div class="w-20 h-20 bg-gray-50 rounded-md overflow-hidden mr-4">
-                                                @if(isset($item['attributes']['image']))
-                                                    <img src="{{ $item['attributes']['image'] }}" class="w-full h-full object-cover">
-                                                @else
-                                                    <div class="w-full h-full bg-gray-200 flex items-center justify-center">
-                                                        <span class="text-gray-400">No Image</span>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                            <div>
-                                                <h3 class="font-medium">{{ $item['name'] }}</h3>
-                                                @if(isset($item['attributes']['color']) && isset($item['attributes']['size']))
-                                                    <div class="flex items-center space-x-2 mt-1">
-                                                        @if(isset($item['attributes']['color']))
-                                                            @php
-                                                                $colorCode = $this->getColorCode($item['attributes']['color']);
-                                                            @endphp
-                                                            <div class="flex items-center space-x-2">
-                                                                <div class="w-4 h-4 rounded-full border border-gray-300"
-                                                                     style="background-color: {{ $colorCode }};"
-                                                                     title="{{ $item['attributes']['color'] }}"></div>
-                                                                <span class="text-sm text-gray-500">{{ $item['attributes']['color'] }}</span>
-                                                            </div>
-                                                        @endif
+                                <tr class="border-b border-white hover:bg-gray-50 transition-colors">
+                                    <td class="py-6 px-4">
+                                        <div class="flex items-center space-x-4">
+                                            @if(isset($item['attributes']['image']) && $item['attributes']['image'])
+                                                <img src="{{ $item['attributes']['image'] }}" alt="{{ $item['name'] }}" class="w-16 h-16 object-cover rounded-lg flex-shrink-0">
+                                            @endif
+                                            <div class="min-w-0 flex-1">
+                                                <h3 class="font-medium text-gray-900 truncate">{{ $item['name'] }}</h3>
+                                                @if(isset($item['attributes']['size']) || isset($item['attributes']['wick_type']))
+                                                    <div class="text-sm text-gray-500 mt-1 flex flex-wrap gap-1">
                                                         @if(isset($item['attributes']['size']))
-                                                            <span class="text-sm text-gray-500">/ {{ $item['attributes']['size'] }}</span>
+                                                            <span class="inline-block bg-white px-2 py-1 rounded text-xs">
+                                                                Size: {{ $item['attributes']['size'] }}gm
+                                                            </span>
+                                                        @endif
+                                                        @if(isset($item['attributes']['wick_type']))
+                                                            <span class="inline-block bg-white px-2 py-1 rounded text-xs">
+                                                                Wick: {{ $item['attributes']['wick_type'] }}
+                                                            </span>
                                                         @endif
                                                     </div>
                                                 @endif
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="py-6">
 
-                                    </td>
-                                    <td class="py-6">
-                                        <div class="flex border rounded-md w-24">
+                                    <td class="py-6 px-4">
+                                        <div class="flex border rounded-md w-24 mx-auto">
                                             <button
                                                 wire:click="decreaseQuantity('{{ $item['rowId'] }}')"
                                                 wire:loading.attr="disabled"
                                                 wire:loading.class="opacity-50 cursor-not-allowed"
-                                                class="px-2 py-1 text-gray-600 hover:bg-gray-100 {{ $item['quantity'] <= 1 ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                                class="px-2 py-1 text-gray-600 hover:bg-white {{ $item['quantity'] <= 1 ? 'opacity-50 cursor-not-allowed' : '' }}"
                                                 {{ $item['quantity'] <= 1 ? 'disabled' : '' }}
                                                 title="Decrease quantity"
                                             >-</button>
@@ -83,21 +70,15 @@
                                                 wire:click="increaseQuantity('{{ $item['rowId'] }}')"
                                                 wire:loading.attr="disabled"
                                                 wire:loading.class="opacity-50 cursor-not-allowed"
-                                                class="px-2 py-1 text-gray-600 hover:bg-gray-100"
+                                                class="px-2 py-1 text-gray-600 hover:bg-white"
                                                 title="Increase quantity"
                                             >+</button>
                                         </div>
-
                                     </td>
-                                    <td class="py-6">
-                                        @if(isset($item['converted_price']))
-                                            <span class="text-green-600">{{ $currencySymbol }}{{ number_format($item['converted_price'] * $item['quantity'], 2) }}</span>
-                                            <span class="text-xs text-gray-500 block">Original: ${{ number_format($item['price'] * $item['quantity'], 2) }}</span>
-                                        @else
-                                            <span>{{ $currencySymbol }}{{ number_format($item['price'] * $item['quantity'], 2) }}</span>
-                                        @endif
+                                    <td class="py-6 px-4 text-center">
+                                        <span class="font-medium">{{ number_format($item['price'] * $item['quantity'], 2) }} EGP</span>
                                     </td>
-                                    <td class="py-6">
+                                    <td class="py-6 px-4 text-center">
                                         <button
                                             wire:click="removeItem('{{ $item['rowId'] }}')"
                                             wire:loading.attr="disabled"
@@ -117,7 +98,6 @@
                                                 </svg>
                                             </span>
                                         </button>
-
                                     </td>
                                 </tr>
                             @endforeach
@@ -144,76 +124,28 @@
                 <div class="space-y-4 mb-6">
                     <div class="flex justify-between">
                         <span class="text-gray-600">Subtotal</span>
-                        <span>
-                            @if($currencyCode !== 'USD')
-                                <span class="text-green-600">{{ $currencySymbol }}{{ number_format($subtotal, 2) }}</span>
-                                <span class="text-xs text-gray-500 block">Original: ${{ number_format(app(\App\Services\CartService::class)->getSubtotal(), 2) }}</span>
-                            @else
-                                {{ $currencySymbol }}{{ number_format($subtotal, 2) }}
-                            @endif
-                        </span>
+                        <span>{{ number_format($subtotal, 2) }} EGP</span>
                     </div>
 
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Shipping</span>
-                        <span>
-                            @if($currencyCode !== 'USD')
-                                <span class="text-green-600">{{ $currencySymbol }}{{ number_format($shipping, 2) }}</span>
-                                <span class="text-xs text-gray-500 block">Original: ${{ number_format(app(\App\Services\CartService::class)->getShippingCost(), 2) }}</span>
-                            @else
-                                {{ $currencySymbol }}{{ number_format($shipping, 2) }}
-                            @endif
-                        </span>
-                    </div>
 
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Tax</span>
-                        <span>
-                            @if($currencyCode !== 'USD')
-                                <span class="text-green-600">{{ $currencySymbol }}{{ number_format($tax, 2) }}</span>
-                                <span class="text-xs text-gray-500 block">Original: ${{ number_format(app(\App\Services\CartService::class)->getTaxAmount(), 2) }}</span>
-                            @endif
-                        </span>
-                    </div>
+
+
 
                     <div class="border-t border-gray-200 pt-4 flex justify-between font-bold">
                         <span>Total</span>
-                        <span>
-                            @if($currencyCode !== 'USD')
-                                <span class="text-green-600">{{ $currencySymbol }}{{ number_format($total, 2) }}</span>
-                                <span class="text-xs text-gray-500 block">Original: ${{ number_format(app(\App\Services\CartService::class)->getTotal(), 2) }}</span>
-                            @else
-                                {{ $currencySymbol }}{{ number_format($total, 2) }}
-                            @endif
-                        </span>
+                        <span>{{ number_format($total, 2) }} EGP</span>
                     </div>
                 </div>
 
-                @if($currencyCode !== 'USD')
-                <div class="text-sm text-gray-500 text-center mb-4 p-2 bg-blue-50 rounded">
-                    @if($isAutoDetected)
-                        Prices automatically converted to {{ $currencyCode }} ({{ $currencySymbol }}) based on your location
-                    @else
-                        Prices converted to {{ $currencyCode }} ({{ $currencySymbol }})
-                    @endif
-                </div>
-                @endif
 
                 <div class="space-y-3">
-                    <a href="{{ route('checkout') }}" class="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-md font-medium transition text-center block">
+                    <a href="{{ route('checkout') }}" class="w-full bg-dark-brown hover:bg-yellow-700 text-white py-3 rounded-md font-medium transition text-center block">
                         Proceed to Checkout
                     </a>
-                    <a href="{{ route('home') }}" class="w-full border border-gray-300 hover:bg-gray-50 py-3 rounded-md font-medium transition text-center block">
+                    <a href="{{ route('home') }}" class="w-full border border-dark-brown text-dark-brown hover:bg-yellow-50 py-3 rounded-md font-medium transition text-center block">
                         Continue Shopping
                     </a>
-                    @if($cartCount > 0)
-                        <button
-                            wire:click="clearCart"
-                            class="w-full border border-red-300 text-red-600 hover:bg-red-50 py-3 rounded-md font-medium transition"
-                        >
-                            Clear Cart
-                        </button>
-                    @endif
+
                 </div>
             </div>
         </div>

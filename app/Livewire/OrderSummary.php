@@ -24,6 +24,13 @@ class OrderSummary extends Component
     public $loyaltyPointsApplied = 0;
     public $finalTotal = 0;
 
+    // Coupon related properties
+    public $couponCode = '';
+    public $appliedCouponCode = null;
+    public $couponDiscount = 0;
+    public $couponMessage = '';
+    public $couponMessageType = '';
+
     protected $cartService;
     protected $currencyService;
 
@@ -74,6 +81,136 @@ class OrderSummary extends Component
         $this->loadOrderData();
     }
 
+    #[On('shipping-updated')]
+    public function handleShippingUpdated($shippingAmount)
+    {
+        Log::info('OrderSummary: Received shipping-updated event', ['shipping_amount' => $shippingAmount]);
+        $this->shippingAmount = (float) $shippingAmount;
+        $this->total = $this->subtotal + $this->shippingAmount;
+        $this->calculateFinalTotal();
+    }
+
+    #[On('coupon-applied')]
+    public function handleCouponApplied($data)
+    {
+        Log::info('OrderSummary: Received coupon-applied event', $data);
+        $this->appliedCouponCode = $data['code'] ?? null;
+        $this->couponDiscount = (float) ($data['discount'] ?? 0);
+        $this->calculateFinalTotal();
+    }
+
+    #[On('coupon-removed')]
+    public function handleCouponRemoved()
+    {
+        Log::info('OrderSummary: Received coupon-removed event');
+        $this->appliedCouponCode = null;
+        $this->couponDiscount = 0;
+        $this->calculateFinalTotal();
+    }
+
+    /**
+     * Clear coupon message when user starts typing
+     */
+    public function updatedCouponCode()
+    {
+        $this->couponMessage = '';
+        $this->couponMessageType = '';
+    }
+
+    /**
+     * Apply coupon based on the entered coupon code.
+     */
+    public function applyCoupon()
+    {
+        $this->validate([
+            'couponCode' => 'required|string',
+        ]);
+
+        $code = strtoupper(trim($this->couponCode));
+
+        try {
+            $coupon = \App\Models\Coupon::where('code', $code)->first();
+
+            if (!$coupon) {
+                $this->couponMessage = 'Coupon not found.';
+                $this->couponMessageType = 'error';
+                $this->couponCode = ''; // Clear the input
+                return;
+            }
+
+            if (!$coupon->isValid()) {
+                $this->couponMessage = 'Coupon is not valid or expired.';
+                $this->couponMessageType = 'error';
+                $this->couponCode = ''; // Clear the input
+                return;
+            }
+
+            // Get cart subtotal in EGP
+            $subtotalEGP = (float) $this->cartService->getSubtotal();
+
+            // All coupon values and min_order_amount are now in EGP
+            if ($coupon->type === 'percentage') {
+                if (!is_null($coupon->min_order_amount) && $subtotalEGP < (float) $coupon->min_order_amount) {
+                    $this->couponMessage = 'Coupon does not meet the minimum order amount of ' . $coupon->min_order_amount . ' EGP.';
+                    $this->couponMessageType = 'error';
+                    $this->couponCode = ''; // Clear the input
+                    return;
+                }
+                $discount = $subtotalEGP * ((float) $coupon->value / 100);
+            } else {
+                // Fixed amount coupons (value in EGP)
+                $discount = (float) $coupon->value;
+            }
+
+            if ($discount <= 0) {
+                $this->couponMessage = 'Coupon does not apply to the current total.';
+                $this->couponMessageType = 'error';
+                $this->couponCode = ''; // Clear the input
+                return;
+            }
+
+            $this->appliedCouponCode = $coupon->code;
+            $this->couponDiscount = round($discount, 2);
+            $this->couponMessage = 'Coupon applied successfully! You saved ' . number_format($discount, 2) . ' EGP.';
+            $this->couponMessageType = 'success';
+            $this->couponCode = ''; // Clear the input
+
+            // Store in session for order processing
+            session(['applied_coupon_code' => $this->appliedCouponCode]);
+            session(['applied_coupon_id' => $coupon->id]);
+
+            // Dispatch event to CheckoutForm
+            $this->dispatch('coupon-applied', [
+                'code' => $this->appliedCouponCode,
+                'discount' => $this->couponDiscount
+            ]);
+
+            $this->calculateFinalTotal();
+        } catch (Exception $e) {
+            Log::error('Error applying coupon', ['error' => $e->getMessage()]);
+            $this->couponMessage = 'Failed to apply coupon. Please try again.';
+            $this->couponMessageType = 'error';
+            $this->couponCode = ''; // Clear the input
+        }
+    }
+
+    /**
+     * Remove any applied coupon.
+     */
+    public function removeCoupon()
+    {
+        $this->appliedCouponCode = null;
+        $this->couponDiscount = 0.0;
+        $this->couponMessage = 'Coupon removed successfully.';
+        $this->couponMessageType = 'success';
+        session()->forget(['applied_coupon_code', 'applied_coupon_id']);
+
+        // Dispatch event to CheckoutForm
+        $this->dispatch('coupon-removed');
+
+        $this->calculateFinalTotal();
+    }
+
         #[On('loyaltyPointsApplied')]
     public function handleLoyaltyPointsApplied($data)
     {
@@ -112,11 +249,12 @@ class OrderSummary extends Component
 
     protected function calculateFinalTotal()
     {
-        $this->finalTotal = max(0, $this->total - $this->loyaltyDiscount);
+        $this->finalTotal = max(0, $this->total - $this->loyaltyDiscount - $this->couponDiscount);
 
         Log::info('OrderSummary: Final total calculated', [
             'original_total' => $this->total,
             'loyalty_discount' => $this->loyaltyDiscount,
+            'coupon_discount' => $this->couponDiscount,
             'final_total' => $this->finalTotal
         ]);
     }

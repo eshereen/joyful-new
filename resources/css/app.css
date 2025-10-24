@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import '../../vendor/livewire/flux/dist/flux.css';
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap');
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -10,9 +11,65 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 @custom-variant dark (&:where(.dark, .dark *));
+@font-face {
+    font-family: 'something';
+    src: url('/font/something.woff2') format('woff2'),
+         url('/font/something.woff') format('woff'),
+         url('/font/something.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Something Font Class */
+.font-something {
+    font-family: 'something', 'Arial', 'Helvetica', sans-serif;
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Debug class to test font loading */
+.font-something-debug {
+    font-family: 'something', 'Arial', 'Helvetica', sans-serif;
+    font-weight: normal;
+    font-style: normal;
+    color: red; /* Make it obvious when this font is applied */
+}
+
+/* Cinzel Font Classes */
+.font-cinzel {
+    font-family: "Cinzel", serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.font-cinzel-medium {
+    font-family: "Cinzel", serif;
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-style: normal;
+}
+
+.font-cinzel-semibold {
+    font-family: "Cinzel", serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-style: normal;
+}
+
+.font-cinzel-bold {
+    font-family: "Cinzel", serif;
+    font-optical-sizing: auto;
+    font-weight: 700;
+    font-style: normal;
+}
+
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-cinzel: 'Cinzel', serif;
+    --font-something: 'something', sans-serif;
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -30,6 +87,7 @@
     --color-dark-brown: #311104;
     --color-dark-gray-brown: #4C3119;
     --color-gray-orange: #CBA881;
+    --color-custom-white: #ffffff;
 
     --color-accent: var(--color-neutral-800);
     --color-accent-content: var(--color-neutral-800);

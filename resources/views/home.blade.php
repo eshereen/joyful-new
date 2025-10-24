@@ -99,7 +99,7 @@
     </section>
 
     <!-- Three Image Block Section -->
-    <section class="py-16  px-4 bg-gray-100">
+    <section class="py-16  px-4 bg-white">
         <div class="container mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 h-auto">
                 <!-- RUN Block -->

@@ -54,9 +54,9 @@ class PaymentMethodsSelector extends Component
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            // Set default methods in case of error
-            $this->methods = ['paypal'];
-            $this->selectedMethod = 'paypal';
+            // Set default methods in case of error - COD only for now
+            $this->methods = ['cash_on_delivery'];
+            $this->selectedMethod = 'cash_on_delivery';
 
             // Dispatch default events even in error case
             $this->dispatch('payment-method-selected', method: $this->selectedMethod);
@@ -66,13 +66,20 @@ class PaymentMethodsSelector extends Component
 
         protected function loadMethods()
     {
+        // TEMPORARY: Only show Cash on Delivery (COD) for now
+        // Other payment methods are commented out and will be activated later
+
         // Get the current country from the checkout form or session
         $countryCode = $this->getCurrentCountryCode();
 
-        $resolver = app(PaymentMethodResolver::class);
-        $this->methods = array_map(fn($m) => $m->value, $resolver->availableForCountry($countryCode));
+        // Only enable COD for now - other methods commented out
+        $this->methods = ['cash_on_delivery'];
 
-        Log::info('PaymentMethodsSelector: loadMethods - before setting selected method', [
+        // COMMENTED OUT: Other payment methods will be activated later
+        // $resolver = app(PaymentMethodResolver::class);
+        // $this->methods = array_map(fn($m) => $m->value, $resolver->availableForCountry($countryCode));
+
+        Log::info('PaymentMethodsSelector: loadMethods - COD only mode', [
             'country_code' => $countryCode,
             'methods' => $this->methods,
             'current_selected_method' => $this->selectedMethod
@@ -80,8 +87,8 @@ class PaymentMethodsSelector extends Component
 
         // Set default selected method only if none is currently selected
         if (!empty($this->methods) && empty($this->selectedMethod)) {
-            $this->selectedMethod = $this->methods[0];
-            Log::info('PaymentMethodsSelector: Setting default selected method', [
+            $this->selectedMethod = $this->methods[0]; // Will be 'cash_on_delivery'
+            Log::info('PaymentMethodsSelector: Setting default selected method to COD', [
                 'default_method' => $this->selectedMethod
             ]);
 
@@ -93,11 +100,10 @@ class PaymentMethodsSelector extends Component
             ]);
         }
 
-        Log::info('PaymentMethodsSelector: loadMethods completed', [
+        Log::info('PaymentMethodsSelector: loadMethods completed - COD only', [
             'country_code' => $countryCode,
             'methods' => $this->methods,
-            'selected_method' => $this->selectedMethod,
-            'credit_card_available' => $this->isCreditCardAvailable()
+            'selected_method' => $this->selectedMethod
         ]);
     }
 
@@ -218,14 +224,16 @@ class PaymentMethodsSelector extends Component
             session(['checkout_country' => $countryCode]);
             Log::info('PaymentMethodsSelector: Session updated', ['session_country' => session('checkout_country')]);
 
-            $resolver = app(PaymentMethodResolver::class);
-            Log::info('PaymentMethodsSelector: PaymentMethodResolver instance created');
+            // TEMPORARY: Only enable COD for now - other methods commented out
+            $this->methods = ['cash_on_delivery'];
+            Log::info('PaymentMethodsSelector: Methods set to COD only', ['methods' => $this->methods]);
 
-            $availableMethods = $resolver->availableForCountry($countryCode);
-            Log::info('PaymentMethodsSelector: Available methods from resolver', ['methods' => $availableMethods]);
-
-            $this->methods = array_map(fn($m) => $m->value, $availableMethods);
-            Log::info('PaymentMethodsSelector: Methods array updated', ['methods' => $this->methods]);
+            // COMMENTED OUT: Other payment methods will be activated later
+            // $resolver = app(PaymentMethodResolver::class);
+            // Log::info('PaymentMethodsSelector: PaymentMethodResolver instance created');
+            // $availableMethods = $resolver->availableForCountry($countryCode);
+            // Log::info('PaymentMethodsSelector: Available methods from resolver', ['methods' => $availableMethods]);
+            // $this->methods = array_map(fn($m) => $m->value, $availableMethods);
 
             // Only set selected method if none is currently selected
             if (!empty($this->methods) && empty($this->selectedMethod)) {

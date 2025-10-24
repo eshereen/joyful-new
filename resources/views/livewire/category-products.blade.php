@@ -190,7 +190,7 @@
                             @if($product->variants->count() > 0)
                                 <button
                                     wire:click="openVariantModal({{ $product->id }})"
-                                    class="flex-1 bg-gray-950 text-white py-2 px-4 rounded-lg hover:bg-gray-100 hover:text-gray-950 transition-colors cursor-pointer"
+                                    class="flex-1 bg-gray-950 text-white py-2 px-4 rounded-lg hover:bg-white hover:text-gray-950 transition-colors cursor-pointer"
                                 >
                                     View Options
                                 </button>
@@ -198,7 +198,7 @@
                                 @if($product->quantity > 0)
                                     <button
                                         wire:click="addSimpleProductToCart({{ $product->id }})"
-                                        class="flex-1 bg-gray-950 text-white py-2 px-4 rounded-lg hover:bg-gray-100 hover:text-gray-950 transition-colors cursor-pointer"
+                                        class="flex-1 bg-gray-950 text-white py-2 px-4 rounded-lg hover:bg-white hover:text-gray-950 transition-colors cursor-pointer"
                                     >
                                         Add to Cart
                                     </button>
@@ -308,7 +308,7 @@
                             <div class="flex items-center gap-3">
                                 <button
                                     wire:click="decrementQty"
-                                    class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100"
+                                    class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-white"
                                     {{ $quantity <= 1 ? 'disabled' : '' }}
                                 >
                                     <i class="fas fa-minus text-sm"></i>
@@ -316,7 +316,7 @@
                                 <span class="text-lg font-medium w-12 text-center">{{ $quantity }}</span>
                                 <button
                                     wire:click="incrementQty"
-                                    class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100"
+                                    class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-white"
                                     {{ $quantity >= ($selectedVariant ? $selectedVariant->stock : 10) ? 'disabled' : '' }}
                                 >
                                     <i class="fas fa-plus text-sm"></i>

@@ -230,7 +230,7 @@
     </section>
 
     <!-- Three Image Block Section -->
-    <section class="px-4 py-16 bg-gray-100">
+    <section class="px-4 py-16 bg-white">
         <div class="container mx-auto">
             <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <!-- RUN Block -->

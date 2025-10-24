@@ -195,7 +195,7 @@
                             class="p-2 bg-white rounded-full shadow-md transition-colors hover:bg-gray-50"
                             data-product-id="{{ $product->id }}"
                             title="{{ in_array($product->id, $wishlistProductIds) ? 'Remove from Wishlist' : 'Add to Wishlist' }}">
-                        <svg class="w-5 h-5 {{ in_array($product->id, $wishlistProductIds) ? 'text-yellow-900 fill-current' : 'text-gray-600' }}"
+                        <svg class="w-5 h-5 {{ in_array($product->id, $wishlistProductIds) ? 'text-dark-brown fill-current' : 'text-gray-600' }}"
                              fill="{{ in_array($product->id, $wishlistProductIds) ? 'currentColor' : 'none' }}"
                              stroke="currentColor"
                              viewBox="0 0 24 24">
@@ -203,7 +203,7 @@
                         </svg>
                     </button>
                     <span wire:loading wire:target="toggleWishlist({{ $product->id }})" class="absolute top-2 right-2 p-2">
-                        <svg class="w-5 h-5 text-yellow-900 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-dark-brown animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -245,11 +245,11 @@
                         @endif
                     </div>
 
-           @if($product->has_variants)
-           {{--  
+                    {{-- COMMENTED OUT: Add to Cart buttons in main slider to prevent duplication --}}
+                    {{-- @if($product->has_variants)
                         @if($product->quantity > 0)
                         <button wire:click="openVariantModal({{ $product->id }})"
-                                class="p-2 text-white rounded-full border-2 transition add-to-cart bg-gray-950 hover:bg-gray-100 hover:text-gray-950 border-gray-950">
+                                class="p-2 text-white rounded-full border-2 transition add-to-cart bg-gray-950 hover:bg-white hover:text-gray-950 border-gray-950">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hover:text-gray-950" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
                             </svg>
@@ -262,13 +262,12 @@
                             </svg>
                         </button>
                         @endif
-                       
                     @else
                         @if($product->quantity > 0)
                         <button wire:click="addSimpleProductToCart({{ $product->id }}, 1)"
                                 wire:loading.attr="disabled"
                                 wire:target="addSimpleProductToCart({{ $product->id }}, 1)"
-                                class="p-2 text-white rounded-full border-2 transition add-to-cart bg-gray-950 hover:bg-gray-100 hover:text-gray-950">
+                                class="p-2 text-white rounded-full border-2 transition add-to-cart bg-gray-950 hover:bg-white hover:text-gray-950">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hover:text-gray-950" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
                             </svg>
@@ -281,16 +280,15 @@
                             </svg>
                         </button>
                         @endif
-                         --}}
-                    @endif
-                    
+                    @endif --}}
+
                 </div>
             </div>
         </div>
             @endforeach
         </div>
-        <!-- Duplicate set for continuous scrolling -->
-        <div class="flex px-3 space-x-6">
+        <!-- Duplicate set for continuous scrolling - COMMENTED OUT -->
+        {{-- <div class="flex px-3 space-x-6">
             @foreach($products as $product)
         <div class="overflow-hidden flex-shrink-0 w-64 bg-white rounded-lg shadow-md transition hover:shadow-lg">
             <div class="relative overflow-hidden aspect-[4/5] product-image-container"
@@ -356,7 +354,7 @@
                             class="p-2 bg-white rounded-full shadow-md transition-colors hover:bg-gray-50"
                             data-product-id="{{ $product->id }}"
                             title="{{ in_array($product->id, $wishlistProductIds) ? 'Remove from Wishlist' : 'Add to Wishlist' }}">
-                        <svg class="w-5 h-5 {{ in_array($product->id, $wishlistProductIds) ? 'text-yellow-900 fill-current' : 'text-gray-600' }}"
+                        <svg class="w-5 h-5 {{ in_array($product->id, $wishlistProductIds) ? 'text-dark-brown fill-current' : 'text-gray-600' }}"
                              fill="{{ in_array($product->id, $wishlistProductIds) ? 'currentColor' : 'none' }}"
                              stroke="currentColor"
                              viewBox="0 0 24 24">
@@ -364,7 +362,7 @@
                         </svg>
                     </button>
                     <span wire:loading wire:target="toggleWishlist({{ $product->id }})" class="absolute top-2 right-2 p-2">
-                        <svg class="w-5 h-5 text-yellow-900 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-dark-brown animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -409,7 +407,7 @@
                     @if($product->has_variants)
                         @if($product->quantity > 0)
                         <button wire:click="openVariantModal({{ $product->id }})"
-                                class="p-2 text-white rounded-full border-2 transition add-to-cart bg-gray-950 hover:bg-gray-100 hover:text-gray-950 border-gray-950">
+                                class="p-2 text-white rounded-full border-2 transition add-to-cart bg-gray-950 hover:bg-white hover:text-gray-950 border-gray-950">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hover:text-gray-950" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
                             </svg>
@@ -427,7 +425,7 @@
                         <button wire:click="addSimpleProductToCart({{ $product->id }}, 1)"
                                 wire:loading.attr="disabled"
                                 wire:target="addSimpleProductToCart({{ $product->id }}, 1)"
-                                class="p-2 text-white rounded-full border-2 transition add-to-cart bg-gray-950 hover:bg-gray-100 hover:text-gray-950">
+                                class="p-2 text-white rounded-full border-2 transition add-to-cart bg-gray-950 hover:bg-white hover:text-gray-950">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hover:text-gray-950" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
                             </svg>
@@ -446,7 +444,7 @@
         </div>
             @endforeach
         </div>
-       
+
     </div>
     </div>
     @else
@@ -462,7 +460,8 @@
         </div>
     @endif
     @else
-    <!-- Grid view for other pages -->
+    <!-- Grid view for other pages (not home) -->
+    @if(!request()->routeIs('home'))
     <div class="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
         @if($products && $products->count() > 0)
             @foreach($products as $product)
@@ -491,7 +490,7 @@
                 </div>
 
                 <div class="block relative w-full h-full">
-                    {{-- Main image --}}
+
                     @php
                         $mainImage = $product->getFirstMediaUrl('main_image') ?: '/imgs/Joyful.png';
                     @endphp
@@ -503,7 +502,7 @@
                          height="300"
                          loading="lazy">
 
-                    {{-- Gallery image (if exists) --}}
+
                     @php
                         $galleryImages = $product->getMedia('product_images');
                         $galleryImage = null;
@@ -535,7 +534,7 @@
                             class="p-2 bg-white rounded-full shadow-md transition-colors hover:bg-gray-50"
                             data-product-id="{{ $product->id }}"
                             title="{{ in_array($product->id, $wishlistProductIds) ? 'Remove from Wishlist' : 'Add to Wishlist' }}">
-                        <svg class="w-5 h-5 {{ in_array($product->id, $wishlistProductIds) ? 'text-yellow-900 fill-current' : 'text-gray-600' }}"
+                        <svg class="w-5 h-5 {{ in_array($product->id, $wishlistProductIds) ? 'text-dark-brown fill-current' : 'text-gray-600' }}"
                              fill="{{ in_array($product->id, $wishlistProductIds) ? 'currentColor' : 'none' }}"
                              stroke="currentColor"
                              viewBox="0 0 24 24">
@@ -543,7 +542,7 @@
                         </svg>
                     </button>
                     <span wire:loading wire:target="toggleWishlist({{ $product->id }})" class="absolute top-2 right-2 p-2">
-                        <svg class="w-5 h-5 text-yellow-900 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-dark-brown animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -588,7 +587,7 @@
                     @if($product->has_variants)
                         @if($product->quantity > 0)
                         <button wire:click="openVariantModal({{ $product->id }})"
-                                class="p-2 text-white rounded-full border-2 transition add-to-cart bg-gray-950 hover:bg-gray-100 hover:text-gray-950 border-gray-950">
+                                class="p-2 text-white rounded-full border-2 transition add-to-cart bg-gray-950 hover:bg-white hover:text-gray-950 border-gray-950">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hover:text-gray-950" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
                             </svg>
@@ -606,7 +605,7 @@
                         <button wire:click="addSimpleProductToCart({{ $product->id }}, 1)"
                                 wire:loading.attr="disabled"
                                 wire:target="addSimpleProductToCart({{ $product->id }}, 1)"
-                                class="p-2 text-white rounded-full border-2 transition add-to-cart bg-gray-950 hover:bg-gray-100 hover:text-gray-950">
+                                class="p-2 text-white rounded-full border-2 transition add-to-cart bg-gray-950 hover:bg-white hover:text-gray-950">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hover:text-gray-950" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
                             </svg>
@@ -624,7 +623,8 @@
             </div>
         </div>
             @endforeach
-        @else
+        </div> --}}
+        {{-- @else
             <div class="col-span-full py-12 text-center">
                 <div class="text-gray-500">
                     <svg class="mx-auto w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -634,8 +634,9 @@
                     <p class="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
                 </div>
             </div>
-        @endif
+        @endif --}}
     </div>
+    @endif
     @endif
     @if(request()->routeIs('products.index') && $products && method_exists($products, 'links'))
     <div class="mt-8">
@@ -711,7 +712,7 @@
             <div class="flex items-center w-32 rounded-lg border">
                 <button type="button"
                         onclick="decrementModalQuantity()"
-                        class="px-3 py-2 bg-gray-100 rounded-l-lg transition-colors hover:bg-gray-200">
+                        class="px-3 py-2 bg-white rounded-l-lg transition-colors hover:bg-gray-200">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
                     </svg>
@@ -725,7 +726,7 @@
                        onchange="updateQuantityFromInput(this.value)">
                 <button type="button"
                         onclick="incrementModalQuantity()"
-                        class="px-3 py-2 bg-gray-100 rounded-r-lg transition-colors hover:bg-gray-200">
+                        class="px-3 py-2 bg-white rounded-r-lg transition-colors hover:bg-gray-200">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
@@ -755,13 +756,13 @@
         <!-- Action Buttons -->
         <div class="flex justify-end mt-3 space-x-3">
             <button wire:click="$set('showVariantModal', false)"
-                    class="px-4 py-2 rounded border transition-colors hover:bg-gray-100">
+                    class="px-4 py-2 rounded border transition-colors hover:bg-white">
                 Cancel
             </button>
             <button wire:click="addToCart"
                     wire:loading.attr="disabled"
                     wire:target="addToCart"
-                    class="px-4 py-2 text-white rounded transition-colors {{ $selectedVariant && $quantity > 0 && $selectedVariant->stock > 0 && $quantity <= $selectedVariant->stock ? 'bg-gray-950 border-2 border-gray-950 hover:bg-gray-100 hover:text-gray-950' : 'bg-gray-400 cursor-not-allowed' }}"
+                    class="px-4 py-2 text-white rounded transition-colors {{ $selectedVariant && $quantity > 0 && $selectedVariant->stock > 0 && $quantity <= $selectedVariant->stock ? 'bg-gray-950 border-2 border-gray-950 hover:bg-white hover:text-gray-950' : 'bg-gray-400 cursor-not-allowed' }}"
                     {{ !$selectedVariant || $quantity <= 0 || $selectedVariant->stock <= 0 || $quantity > ($selectedVariant ? $selectedVariant->stock : 0) ? 'disabled' : '' }}>
                 <!-- DEBUG: selectedVariant: {{ $selectedVariant ? 'YES' : 'NO' }} -->
                 <!-- DEBUG: quantity: {{ $quantity }} -->

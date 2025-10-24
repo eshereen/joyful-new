@@ -14,8 +14,8 @@ return new class extends Migration
     {
         Schema::create('shippings', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('city_id')->nullable();
-            $table->foreign('city_id')->references('id')->on('cities');
+            $table->unsignedBigInteger('state_id')->nullable();
+            $table->foreign('state_id')->references('id')->on('states');
             $table->integer('price');
             $table->timestamps();
         });

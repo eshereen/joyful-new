@@ -131,12 +131,12 @@
                         <div class="flex border rounded-md">
                             <button
                                 x-on:click="quantity > 1 ? quantity-- : null"
-                                class="px-3 py-1 text-gray-600 hover:bg-gray-100"
+                                class="px-3 py-1 text-gray-600 hover:bg-white"
                             >-</button>
                             <span x-text="quantity" class="px-3 py-1 border-x"></span>
                             <button
                                 x-on:click="quantity++"
-                                class="px-3 py-1 text-gray-600 hover:bg-gray-100"
+                                class="px-3 py-1 text-gray-600 hover:bg-white"
                             >+</button>
                         </div>
                     </div>
@@ -149,7 +149,7 @@
                 </div>
 
                 <!-- Product Details -->
-                <div class="border-t border-gray-100 pt-6">
+                <div class="border-t border-white pt-6">
                     <h3 class="text-sm font-medium text-gray-700 mb-3">Details</h3>
                     <ul class="text-sm text-gray-600 space-y-2">
                         <li>• 100% Sustainable Viscose</li>

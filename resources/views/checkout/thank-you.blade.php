@@ -54,13 +54,13 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <span class="text-gray-600">Status:</span>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-dark-brown">
                             {{ ucfirst($order->status->value) }}
                         </span>
                     </div>
                     <div>
                         <span class="text-gray-600">Payment Status:</span>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-dark-brown">
                             {{ ucfirst($order->payment_status->value) }}
                         </span>
                     </div>
@@ -84,7 +84,7 @@
                         <div>
                             <h3 class="font-medium text-gray-900">{{ $item->product->name ?? 'Product' }}</h3>
                             @if($item->variant)
-                                <p class="text-sm text-gray-600">{{ $item->variant->color }}, {{ $item->variant->size }}</p>
+                                <p class="text-sm text-gray-600">{{ $item->variant->wick_type }}, {{ $item->variant->size }}gm</p>
                             @endif
                         </div>
                     </div>
@@ -105,7 +105,7 @@
             <!-- Action Buttons -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('products.index') }}"
-                   class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors">
+                   class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-dark-brown hover:bg-yellow-700 transition-colors">
                     Continue Shopping
                 </a>
 
@@ -122,22 +122,12 @@
                 @endif
             </div>
 
-            @if($currencyInfo['currency_code'] !== 'USD')
-            <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div class="text-sm text-blue-800 text-center">
-                    @if($currencyInfo['is_auto_detected'])
-                        Prices automatically converted to {{ $currencyInfo['currency_code'] }} ({{ $currencyInfo['currency_symbol'] }}) based on your location
-                    @else
-                        Prices converted to {{ $currencyInfo['currency_code'] }} ({{ $currencyInfo['currency_symbol'] }})
-                    @endif
-                </div>
-            </div>
-            @endif
+
 
             <!-- Additional Info -->
             <div class="mt-8 text-sm text-gray-500">
                 <p>If you have any questions about your order, please contact our customer support.</p>
-                <p class="mt-2">Email: support@Joyful.com </p>
+                <p class="mt-2">Email: support@Joyfulegy.com </p>
             </div>
         </div>
     </div>

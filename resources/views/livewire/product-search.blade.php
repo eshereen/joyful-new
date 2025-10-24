@@ -41,7 +41,7 @@
                 <!-- Close Button -->
                 <div class="flex-shrink-0">
                     <button @click="showSearch = false"
-                            class="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                            class="p-2 hover:bg-white rounded-full transition-colors">
                         <i class="fas fa-times text-gray-500 text-lg"></i>
                     </button>
                 </div>
@@ -56,7 +56,7 @@
                         @foreach($searchResults as $product)
                             <div wire:click="selectProduct({{ $product->id }})"
                                  @click="showSearch = false"
-                                 class="flex items-center p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0">
+                                 class="flex items-center p-4 hover:bg-gray-50 cursor-pointer border-b border-white last:border-b-0">
                                 <div class="flex-shrink-0 w-12 h-12 mr-4">
                                     @if($product->getFirstMediaUrl('main_image'))
                                         <img src="{{ $product->getFirstMediaUrl('main_image') }}"

@@ -22,7 +22,7 @@
             @foreach($products as $product)
                 <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 group">
                     <!-- Product Image -->
-                    <div class="aspect-square overflow-hidden bg-gray-100 relative">
+                    <div class="aspect-square overflow-hidden bg-white relative">
                         <a href="{{ route('product.show', $product->slug) }}">
                             @if($product->getFirstMediaUrl('main_image'))
                                 <img src="{{ $product->getFirstMediaUrl('main_image') }}"
