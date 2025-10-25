@@ -11,18 +11,18 @@
 
             <div class="flex gap-2">
                 <input type="email" wire:model.defer="email"
-                       class="flex-grow px-4 py-2 border border-gray-300 focus:outline-none focus:border-red-600 text-gray-200"
+                       class="flex-grow px-4 py-2 border border-gray-300 focus:outline-none focus:border-dark-brown text-gray-200"
                        placeholder="Enter your email"
                        required>
 
                 <button type="submit"
-                        class="bg-red-600 text-white px-4 py-2 hover:bg-red-700 transition-colors flex items-center justify-center">
+                        class="bg-dark-brown text-white px-4 py-2 hover:bg-red-700 transition-colors flex items-center justify-center">
                         <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
 
             @error('email')
-                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                <p class="text-sm text-dark-brown mt-1">{{ $message }}</p>
             @enderror
         </form>
     @endif

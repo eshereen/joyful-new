@@ -266,6 +266,7 @@
     </section>
 
 <!--Review-->
+<section class="py-20 bg-white ">
 	<div class="my-10 md:my-24 container mx-auto flex flex-col md:flex-row shadow-sm overflow-hidden" x-data="{ testimonialActive: 2 }" x-cloak>
 
 
@@ -355,9 +356,10 @@
 				</div>
 			</div>
 		</div>
+        </section>
 
     <!-- Newsletter Section -->
-    <section class="py-20 bg-gray-orange" >
+    <section class="py-40 bg-gray-orange bg-cover bg-center bg-fixed" style="background-image:url('/imgs/review.jpeg');background-position:cover; background-repeate:no-repeate" >
         <div class="container mx-auto px-4">
             <div class="max-w-2xl mx-auto text-center">
                 <h3 class="text-4xl font-bold mb-4 text-white playfair">Stay in the Loop</h3>
