@@ -39,7 +39,7 @@
 
         <div class="flex relative z-10 justify-center items-center px-4 h-full text-center text-white">
             <div class="max-w-3xl">
-                <h1 class="text-5xl md:text-6xl lg:text-[200px] font-something mb-6">Bring joy to your space</h1>
+                <h1 class="text-5xl md:text-6xl lg:text-[120px] font-something mb-6">Bring joy to your space</h1>
                 <p class="mb-8 text-xl font-light md:text-2xl">Have a joyful time</p>
                 <button class="px-8 py-4 text-lg font-medium text-white rounded-full btn-primary bg-dark-brown">
                     Shop Now
