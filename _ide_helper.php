@@ -28838,25 +28838,6 @@ namespace Filament\Auth\Pages {
             }
     }
 
-namespace BezhanSalleh\FilamentShield\Resources\Roles\Pages {
-    /**
-     */
-    class ListRoles extends \Filament\Resources\Pages\ListRecords {
-            }
-    /**
-     */
-    class CreateRole extends \Filament\Resources\Pages\CreateRecord {
-            }
-    /**
-     */
-    class ViewRole extends \Filament\Resources\Pages\ViewRecord {
-            }
-    /**
-     */
-    class EditRole extends \Filament\Resources\Pages\EditRecord {
-            }
-    }
-
 namespace Illuminate\View {
     /**
      */
@@ -34371,11 +34352,6 @@ namespace  {
 }
 
 
-namespace Facades\Livewire\Features\SupportFileUploads {
-    /**
-     * @mixin \Livewire\Features\SupportFileUploads\GenerateSignedUploadUrl     */
-    class GenerateSignedUploadUrl extends \Livewire\Features\SupportFileUploads\GenerateSignedUploadUrl {}
-}
 
 
 

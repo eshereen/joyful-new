@@ -12,15 +12,8 @@
     <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-
-
     <!-- Livewire Styles -->
     @livewireStyles
-   </link>
-   <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js"></script>
 
 <style>
     .slider-wrapper {
@@ -63,19 +56,12 @@
     }
 </style>
 
-    <!-- Preload critical CSS -->
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
-
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!--Favicons-->
-
-
-<!--google fonts-->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
+    <!-- Google Fonts - Single import -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap" rel="stylesheet">
 
      <script>
         tailwind.config = {
@@ -90,23 +76,24 @@
         }
     </script>
     <style>
-
-
+/* Custom font-something class */
+.font-something {
+    font-family: 'something', 'Arial', 'Helvetica', sans-serif;
+}
 
 h1,h2,h3,h4,h5,h6{
-    font-family: "something", 'Arial', 'Helvetica', sans-serif;
+    font-family: "cinzel", 'Arial', 'Helvetica', sans-serif;
     font-optical-sizing: auto;
-    font-weight: 800;
+
     font-style: normal;
     letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
+
 p,a,span,li,ul,ol,button{
-    font-family: "Cinzel", serif;
+    font-family:  serif;
     font-optical-sizing: auto;
     font-weight: 300;
     font-style: normal;
-    text-transform: uppercase;
+
 }
     </style>
 

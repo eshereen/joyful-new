@@ -1,6 +1,5 @@
 @import 'tailwindcss';
 @import '../../vendor/livewire/flux/dist/flux.css';
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap');
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -18,7 +17,7 @@
          url('/font/something.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
-    font-display: swap;
+
 }
 
 /* Something Font Class */
@@ -28,13 +27,7 @@
     font-style: normal;
 }
 
-/* Debug class to test font loading */
-.font-something-debug {
-    font-family: 'something', 'Arial', 'Helvetica', sans-serif;
-    font-weight: normal;
-    font-style: normal;
-    color: red; /* Make it obvious when this font is applied */
-}
+
 
 /* Cinzel Font Classes */
 .font-cinzel {
@@ -130,12 +123,10 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
-body {
-    font-family: 'Poppins', sans-serif;
-}
+
 
 h1 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'cinzel', 'Arial', 'Helvetica', sans-serif;
 }
 
 
@@ -283,15 +274,10 @@ video {
 }
 
 /* Optimize font rendering */
-body {
-    font-family: 'Poppins', sans-serif;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
+
 
 h1 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'cinzel', 'Arial', 'Helvetica', sans-serif;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
