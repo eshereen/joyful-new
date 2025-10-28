@@ -50,7 +50,7 @@
 
     <!-- Bar Section with Background Image -->
     <section class="overflow-hidden relative h-48 md:h-56">
-        <div class="absolute inset-0 bg-fixed bg-center bg-cover" style="background-image: url('/imgs/background.png');">
+        <div class="absolute inset-0 bg-fixed bg-center bg-cover" style="background-image: url('/imgs/background.jpg');">
             <div class="flex absolute inset-0 justify-center items-center bg-black/20">
 
             </div>
