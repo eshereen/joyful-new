@@ -27,7 +27,9 @@
     font-style: normal;
 }
 
-
+#hero-title {
+    font-family: 'something', 'Arial', 'Helvetica', sans-serif !important;
+}
 
 /* Cinzel Font Classes */
 .font-cinzel {
