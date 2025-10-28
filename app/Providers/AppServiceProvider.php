@@ -73,9 +73,17 @@ class AppServiceProvider extends ServiceProvider
                     ->orderBy('name')
                     ->get();
             });
+             // Get collections for dropdown
+             $productionsProducts   = cache()->remember('productions_products', 1800, function () {
+                return Product::where('products.active', true)
+                    ->orderBy('name')
+                    ->take(5)
+                    ->get();
+            });
 
             $view->with('categories', $categories);
             $view->with('collections', $collections);
+            $view->with('productionsProducts', $productionsProducts);
         });
 
         // Share all categories for category pages - Cached separately
