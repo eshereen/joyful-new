@@ -74,7 +74,7 @@ class AppServiceProvider extends ServiceProvider
                     ->get();
             });
              // Get collections for dropdown
-             $productionsProducts   = cache()->remember('productions_products', 1800, function () {
+             $products   = cache()->remember('header_products', 1800, function () {
                 return Product::where('products.active', true)
                     ->orderBy('name')
                     ->take(5)
@@ -83,7 +83,7 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('categories', $categories);
             $view->with('collections', $collections);
-            $view->with('productionsProducts', $productionsProducts);
+            $view->with('products', $products);
         });
 
         // Share all categories for category pages - Cached separately
