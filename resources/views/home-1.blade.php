@@ -298,7 +298,7 @@
             <div class="relative">
               <div class="absolute inset-0 bg-gradient-to-r from-orange-400 to-yellow-400 rounded-full opacity-50 blur-lg animate-pulse"></div>
               <div class="relative p-4 bg-white rounded-full shadow-lg">
-                <svg class="w-8 h-8 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+                <svg class="w-8 h-8 text-dark" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C11.5 2 10 4 10 6C10 8 11.5 10 12 10C12.5 10 14 8 14 6C14 4 12.5 2 12 2M12 12C10.9 12 10 12.9 10 14V20C10 21.1 10.9 22 12 22C13.1 22 14 21.1 14 20V14C14 12.9 13.1 12 12 12Z"/>
                 </svg>
               </div>

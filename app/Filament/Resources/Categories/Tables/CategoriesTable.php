@@ -17,8 +17,9 @@ class CategoriesTable
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('slug')
-                    ->searchable(),
+                TextColumn::make('description')
+                    ->html()
+                    ->limit(100),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

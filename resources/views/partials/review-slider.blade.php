@@ -1,5 +1,5 @@
 <!--Review Section - Full Screen Slider-->
-<section class="relative overflow-hidden" style="height: 100vh;" x-data="{ testimonialActive: 1 }" x-cloak>
+<section class="relative overflow-hidden" style="height: 100vh;" x-data="{ testimonialActive: 1, totalSlides: 3, autoplayDelay: 5000, intervalId: null, next() { this.testimonialActive = this.testimonialActive >= this.totalSlides ? 1 : this.testimonialActive + 1 }, start() { this.stop(); this.intervalId = setInterval(() => this.next(), this.autoplayDelay) }, stop() { if (this.intervalId) { clearInterval(this.intervalId); this.intervalId = null; } } }" x-init="start()" x-cloak>
     <!-- Slider Content -->
     <div class="relative w-full h-full">
         <!-- Slide 1 -->

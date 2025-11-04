@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\Categories\Schemas;
 
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Schema;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\RichEditor;
 
 class CategoryForm
 {
@@ -14,7 +15,19 @@ class CategoryForm
             ->components([
                 TextInput::make('name')
                     ->required(),
-                Textarea::make('description')
+                    RichEditor::make('description')
+                    ->toolbarButtons([
+                        'bold',
+                        'italic',
+                        'strike',
+                        'link',
+                        'blockquote',
+                        'codeBlock',
+                        'h2',
+                        'h3',
+                        'bulletList',
+                        'orderedList',
+                    ])
                     ->columnSpanFull(),
             ]);
     }

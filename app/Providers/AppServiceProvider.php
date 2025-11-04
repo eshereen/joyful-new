@@ -3,23 +3,25 @@
 namespace App\Providers;
 
 use App\Models\Order;
-use App\Models\Category;
 use App\Models\Product;
+use App\Models\Category;
+use App\Models\OrderItem;
 use App\Events\OrderPlaced;
-use App\Events\PaymentStatusChanged;
-use App\Listeners\AwardLoyaltyPoints;
-use App\Listeners\HandlePaymentStatusChange;
 use App\Observers\OrderObserver;
 use App\Observers\ProductObserver;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\ServiceProvider;
-use App\Models\OrderItem;
+use App\Events\PaymentStatusChanged;
+use App\Observers\MediaSyncObserver;
 use App\Observers\OrderItemObserver;
+use Illuminate\Support\Facades\View;
+use App\Listeners\AwardLoyaltyPoints;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\ServiceProvider;
+use App\Listeners\HandlePaymentStatusChange;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -77,7 +79,7 @@ class AppServiceProvider extends ServiceProvider
              $products   = cache()->remember('header_products', 1800, function () {
                 return Product::where('products.active', true)
                     ->orderBy('name')
-                    ->take(5)
+
                     ->get();
             });
 
@@ -156,5 +158,6 @@ class AppServiceProvider extends ServiceProvider
                 }
             });
         }
+        Media::observe(MediaSyncObserver::class);
     }
 }

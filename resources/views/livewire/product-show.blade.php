@@ -17,13 +17,13 @@
     <div class="flex flex-col gap-8 lg:flex-row">
         <!-- Product Images -->
         <div class="lg:w-1/2"
-        x-data="{
-           currentImage: '{{ $product->getFirstMediaUrl('main_image') }}',
-           currentZoomImage: '{{ $product->getFirstMediaUrl('main_image', 'zoom_webp') }}',
+       x-data="{
+          currentImage: '{{ $product->getFirstMediaUrl('main_image') }}',
+          currentZoomImage: '{{ $product->getFirstMediaUrl('main_image', 'large_webp') }}',
            images: [
                {
                    large: '{{ $product->getFirstMediaUrl('main_image') }}',
-                   zoom: '{{ $product->getFirstMediaUrl('main_image', 'zoom_webp') }}',
+                  zoom: '{{ $product->getFirstMediaUrl('main_image', 'large_webp') }}',
                    medium: '{{ $product->getFirstMediaUrl('main_image', 'medium_webp') }}',
                    thumb: '{{ $product->getFirstMediaUrl('main_image', 'thumb_webp') }}',
 
@@ -31,9 +31,9 @@
                @foreach($product->getMedia('product_images') as $image)
                {
                    large: '{{ $image->getUrl() }}',
-                   zoom: '{{ $image->getUrl('zoom_webp') }}',
-                   medium: '{{ $image->getUrl('medium_webp') }}',
-                   thumb: '{{ $image->getUrl('thumb_webp') }}',
+                  zoom: '{{ method_exists($image, 'hasGeneratedConversion') && $image->hasGeneratedConversion('zoom_webp') ? $image->getUrl('zoom_webp') : $image->getUrl() }}',
+                  medium: '{{ method_exists($image, 'hasGeneratedConversion') && $image->hasGeneratedConversion('medium_webp') ? $image->getUrl('medium_webp') : $image->getUrl() }}',
+                  thumb: '{{ method_exists($image, 'hasGeneratedConversion') && $image->hasGeneratedConversion('thumb_webp') ? $image->getUrl('thumb_webp') : $image->getUrl() }}',
 
                },
                @endforeach
@@ -90,10 +90,9 @@
                     :class="currentImage === image.large ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-200'"
                     @click="magnifierEnabled = false; currentImage = image.large; currentZoomImage = image.zoom">
 
-                   <picture class="object-cover w-full h-24 transition-opacity hover:opacity-80">
-                       <source :srcset="image.avif" type="image/avif">
-                       <source :srcset="image.medium" type="image/webp">
-                       <img :src="image.thumb"
+                    <picture class="object-cover w-full h-24 transition-opacity hover:opacity-80">
+                        <source :srcset="image.medium" type="image/webp">
+                        <img :src="image.thumb"
                             alt="{{ $product->name }}"
                             class="object-cover object-center w-full h-24"
                             style="object-position: center;"
@@ -320,7 +319,7 @@
                 <a href="{{ route('product.show', $relatedProduct->slug) }}">
                     <picture class="w-full h-64">
                         {{-- Modern formats first --}}
-                        <source srcset="{{ $relatedProduct->getFirstMediaUrl('main_image', 'large_avif') }}" type="image/avif">
+
                         <source srcset="{{ $relatedProduct->getFirstMediaUrl('main_image', 'large_webp') }}" type="image/webp">
                         {{-- Fallback for older browsers --}}
                         <img src="{{ $relatedProduct->getFirstMediaUrl('main_image') }}"

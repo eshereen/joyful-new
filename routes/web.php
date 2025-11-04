@@ -38,10 +38,19 @@ Route::prefix('currency')->group(function () {
 });
 
 
-// CSRF token refresh route
+// CSRF token refresh routes
 Route::get('/csrf-token', function () {
     return response()->json(['csrf_token' => csrf_token()]);
 })->name('csrf.token');
+
+Route::get('/refresh-csrf', function () {
+    // Regenerate the session token
+    request()->session()->regenerateToken();
+    return response()->json([
+        'csrf_token' => csrf_token(),
+        'success' => true
+    ]);
+})->name('csrf.refresh');
 
 // Checkout routes
 Route::get('/checkout', [CheckoutController::class, 'checkout'])->name('checkout');

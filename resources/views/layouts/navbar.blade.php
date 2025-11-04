@@ -25,10 +25,12 @@
 <div class="container px-8 mx-auto">
   <div class="flex relative justify-between items-center">
 
-      <!-- Mobile Left Side: Cart and Currency -->
-      <div class="flex flex-shrink-0 items-center space-x-2 md:hidden">
-          <!-- Cart and Wishlist Counts -->
-          @livewire('cart-wishlist-counts')
+      <!-- Mobile Left Side: Menu Button Only -->
+      <div class="flex flex-shrink-0 items-center md:hidden">
+          <!-- Mobile Menu Button -->
+          <button @click="mobileMenuOpen = !mobileMenuOpen" class="hover:cursor-pointer" type="button" aria-controls="mobileMenu">
+              <i class="text-xl fas fa-bars" :class="isHome && !scrolled ? 'text-white' : 'text-gray-950'"></i>
+          </button>
       </div>
 
       <!-- Desktop Navigation -->
@@ -152,11 +154,11 @@
       </nav>
 
           <!-- Logo (Perfectly Centered) -->
-      <a href="{{ route('home') }}" class="flex absolute left-1/2 items-center transform -translate-x-1/2 py-4">
+      <a href="{{ route('home') }}" class="flex absolute left-1/2 items-center py-4 transform -translate-x-1/2">
           <!-- White logo (home page, not scrolled) -->
-          <img x-show="isHome && !scrolled" src="{{asset('/imgs/logo.png')}}" alt="logo" class="w-20 py-2">
+          <img x-show="isHome && !scrolled" src="{{asset('/imgs/logo.png')}}" alt="logo" class="py-2 w-20">
           <!-- Black logo (home page scrolled or non-home page) -->
-          <img x-show="!isHome || (isHome && scrolled)" src="{{asset('/imgs/logo.png')}}" alt="logo" class="w-20 py-2">
+          <img x-show="!isHome || (isHome && scrolled)" src="{{asset('/imgs/logo.png')}}" alt="logo" class="py-2 w-20">
       </a>
 
       <!-- Desktop Right Side Icons -->
@@ -165,20 +167,18 @@
           <a href="{{ route('login') }}" class="hidden uppercase transition-colors lg:block font-xs hover:text-red-600" :class="isHome && !scrolled ? 'text-white' : 'text-gray-900'"><i class="fas fa-user"></i></a>
 
            <!-- Cart and Wishlist Counts -->
-           @livewire('cart-wishlist-counts')
+
+
       </div>
 
-      <!-- Mobile Right Side: Search and Menu -->
+      <!-- Mobile Right Side: Search, Wishlist, and Cart -->
       <div class="flex flex-shrink-0 items-center space-x-3 md:hidden">
           <!-- Search Icon -->
-          <a href="{{ route('products.search') }}" class="hover:cursor-pointer">
-              <i class="text-xl fas fa-search" :class="isHome && !scrolled ? 'text-white' : 'text-gray-950'"></i>
-          </a>
+          @livewire('product-search')
 
-          <!-- Mobile Menu Button -->
-          <button @click="mobileMenuOpen = !mobileMenuOpen" class="hover:cursor-pointer" type="button" aria-controls="mobileMenu">
-              <i class="text-xl fas fa-bars" :class="isHome && !scrolled ? 'text-white' : 'text-gray-950'"></i>
-          </button>
+          <!-- Cart and Wishlist Counts -->
+          @livewire('cart-wishlist-counts')
+          <a href="{{ route('login') }}" class="block py-2 font-semibold text-gray-900 transition-colors hover:text-red-600" @click="mobileMenuOpen = false"><i class="fas fa-user"></i></a>
       </div>
   </div>
 
@@ -215,11 +215,7 @@
             </svg>
         </button>
     </div>
-
     <nav class="px-4 py-4 space-y-2">
-
-
-
       <!-- Collections Section -->
       <div class="pt-2 border-t border-gray-200">
         <button @click="mobileCollectionsOpen = !mobileCollectionsOpen"

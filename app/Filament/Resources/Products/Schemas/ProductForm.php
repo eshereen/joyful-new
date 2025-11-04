@@ -8,6 +8,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 
 class ProductForm
@@ -22,7 +23,19 @@ class ProductForm
                     ->live(),
                 TextInput::make('name')
                     ->required(),
-                Textarea::make('description')
+                RichEditor::make('description')
+                ->toolbarButtons([
+                    'bold',
+                    'italic',
+                    'strike',
+                    'link',
+                    'blockquote',
+                    'codeBlock',
+                    'h2',
+                    'h3',
+                    'bulletList',
+                    'orderedList',
+                ])
                     ->columnSpanFull(),
                 SpatieMediaLibraryFileUpload::make('main_image')
                     ->collection('main_image')

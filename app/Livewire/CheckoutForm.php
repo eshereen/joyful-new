@@ -9,6 +9,7 @@ use App\Models\Country;
 use App\Services\PaymentMethodResolver;
 use App\Services\CountryCurrencyService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class CheckoutForm extends Component
  {
@@ -31,18 +32,6 @@ class CheckoutForm extends Component
         $this->updateTotals();
     }
 
-    public function updatedShippingState($stateName)
-    {
-        // Find the state by name
-        $state = \App\Models\State::where('name', $stateName)->first();
-        if ($state) {
-            $shipping = \App\Models\Shipping::where('state_id', $state->id)->first();
-            $this->shippingFee = $shipping && $shipping->price !== null ? (float)$shipping->price : 0;
-        } else {
-            $this->shippingFee = 0;
-        }
-        $this->updateTotals();
-    }
 
     public function updateTotals()
     {
@@ -64,8 +53,6 @@ class CheckoutForm extends Component
 
     // States for selected country
     public $states = [];
-    // States for selected shipping country
-    public $shippingStates = [];
 
     // Customer Information
     public $firstName = '';
@@ -73,20 +60,17 @@ class CheckoutForm extends Component
     public $email = '';
     public $phoneNumber = '';
 
-    // Billing Address fields
+    // Account Creation
+    public $createAccount = false;
+    public $password = '';
+    public $passwordConfirmation = '';
+
+    // Billing Address fields (also used as shipping address)
     public $billingCountry = null;
     public $billingState = '';
     public $billingCity = '';
     public $billingAddress = '';
     public $billingBuildingNumber = '';
-
-    // Shipping Address fields
-    public $shippingCountry = null;
-    public $shippingState = '';
-    public $shippingCity = '';
-    public $shippingAddress = '';
-    public $shippingBuildingNumber = '';
-    public $useBillingForShipping = false;
 
     // Payment fields
     public $paymentMethods = [];
@@ -182,18 +166,46 @@ class CheckoutForm extends Component
 
     public function mount()
     {
+        // Auto-fill customer information if user is logged in
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            // Split name into first and last name
+            $nameParts = explode(' ', $user->name, 2);
+            $this->firstName = $nameParts[0] ?? '';
+            $this->lastName = $nameParts[1] ?? '';
+
+            $this->email = $user->email;
+
+            // Try to get phone number from user or customer table
+            if (isset($user->phone_number) && $user->phone_number) {
+                $this->phoneNumber = $user->phone_number;
+            } elseif ($user->customer && $user->customer->phone_number) {
+                $this->phoneNumber = $user->customer->phone_number;
+            } else {
+                // Set empty string if no phone number found
+                $this->phoneNumber = '';
+            }
+
+            Log::info('Auto-filled user data for checkout', [
+                'user_id' => $user->id,
+                'firstName' => $this->firstName,
+                'lastName' => $this->lastName,
+                'email' => $this->email,
+                'phoneNumber' => $this->phoneNumber
+            ]);
+        }
+
         // Get current country from session or default to Egypt (EG)
         $countryCode = session('checkout_country', 'EG');
         $country = Country::where('code', $countryCode)->first();
 
         if ($country) {
-            // Set both billing and shipping countries
+            // Set billing country
             $this->billingCountry = $country->id;
-            $this->shippingCountry = $country->id;
 
-            // Load states for billing and shipping country
+            // Load states for billing country
             $this->loadStates($this->billingCountry);
-            $this->loadShippingStates($this->shippingCountry);
 
             // Update session with the country code
             session(['checkout_country' => $countryCode]);
@@ -217,15 +229,6 @@ class CheckoutForm extends Component
         // Check stock availability and show warnings
         $this->checkStockAvailability();
     }
-    public function loadShippingStates($countryId)
-    {
-        if ($countryId) {
-            $this->shippingStates = \App\Models\State::where('country_id', $countryId)->orderBy('name')->get();
-        } else {
-            $this->shippingStates = [];
-        }
-    }
-
     public function loadStates($countryId)
     {
         if ($countryId) {
@@ -241,34 +244,6 @@ class CheckoutForm extends Component
         $this->loadStates($countryId);
         $this->billingState = '';
         $this->handleCountryChange($countryId, 'billing');
-    }
-
-    public function updatedShippingCountry($countryId)
-    {
-        $this->loadShippingStates($countryId);
-        $this->shippingState = '';
-        $this->handleCountryChange($countryId, 'shipping');
-    }
-
-    public function updatedUseBillingForShipping($value)
-    {
-        if ($value) {
-            // Copy all billing information to shipping
-            $this->shippingCountry = $this->billingCountry;
-            $this->shippingState = $this->billingState;
-            $this->shippingCity = $this->billingCity;
-            $this->shippingAddress = $this->billingAddress;
-            $this->shippingBuildingNumber = $this->billingBuildingNumber;
-
-            // Update shipping fee based on billing state
-            if ($this->billingState) {
-                $this->updatedShippingState($this->billingState);
-            }
-
-            if ($this->billingCountry) {
-                $this->handleCountryChange($this->billingCountry, 'shipping_from_billing');
-            }
-        }
     }
 
     protected function handleCountryChange($countryId, $source = 'unknown')
@@ -472,26 +447,32 @@ class CheckoutForm extends Component
     }
 
     // Validation rules for all form fields
-    protected $rules = [
-        'firstName' => 'required|string|min:2|max:50',
-        'lastName' => 'required|string|min:2|max:50',
-        'email' => 'required|email|max:255',
-        'phoneNumber' => 'required|string|min:10|max:20',
+    protected function rules()
+    {
+        $rules = [
+            'firstName' => 'required|string|min:2|max:50',
+            'lastName' => 'required|string|min:2|max:50',
+            'email' => 'required|email|max:255',
+            'phoneNumber' => 'required|string|min:10|max:20',
 
-        'billingCountry' => 'required|exists:countries,id',
-        'billingState' => 'required|string|min:2|max:100',
-        'billingCity' => 'required|string|min:2|max:100',
-        'billingAddress' => 'required|string|min:5|max:255',
-        'billingBuildingNumber' => 'nullable|string|max:50',
+            'billingCountry' => 'required|exists:countries,id',
+            'billingState' => 'required|string|min:2|max:100',
+            'billingCity' => 'required|string|min:2|max:100',
+            'billingAddress' => 'required|string|min:5|max:255',
+            'billingBuildingNumber' => 'nullable|string|max:50',
 
-        'shippingCountry' => 'required_if:useBillingForShipping,false|exists:countries,id',
-        'shippingState' => 'required_if:useBillingForShipping,false|string|min:2|max:100',
-        'shippingCity' => 'required_if:useBillingForShipping,false|string|min:2|max:100',
-        'shippingAddress' => 'required_if:useBillingForShipping,false|string|min:5|max:255',
-        'shippingBuildingNumber' => 'nullable|string|max:50',
+            'selectedPaymentMethod' => 'required|string|in:paypal,paymob,cash_on_delivery',
+        ];
 
-        'selectedPaymentMethod' => 'required|string|in:paypal,paymob,cash_on_delivery',
-    ];
+        // Add password validation if user wants to create an account
+        if ($this->createAccount && !Auth::check()) {
+            $rules['email'] = 'required|email|max:255|unique:users,email';
+            $rules['password'] = 'required|string|min:8|max:255';
+            $rules['passwordConfirmation'] = 'required|same:password';
+        }
+
+        return $rules;
+    }
 
     // Custom validation messages
     protected $messages = [
@@ -499,6 +480,7 @@ class CheckoutForm extends Component
         'lastName.required' => 'Last name is required',
         'email.required' => 'Email address is required',
         'email.email' => 'Please enter a valid email address',
+        'email.unique' => 'This email is already registered. Please login or use a different email.',
         'phoneNumber.required' => 'Phone number is required',
         'phoneNumber.min' => 'Phone number must be at least 10 characters',
 
@@ -507,10 +489,10 @@ class CheckoutForm extends Component
         'billingCity.required' => 'City is required',
         'billingAddress.required' => 'Billing address is required',
 
-        'shippingCountry.required_if' => 'Shipping country is required',
-        'shippingState.required_if' => 'State/Province is required',
-        'shippingCity.required_if' => 'City is required',
-        'shippingAddress.required_if' => 'Shipping address is required',
+        'password.required' => 'Password is required',
+        'password.min' => 'Password must be at least 8 characters',
+        'passwordConfirmation.required' => 'Please confirm your password',
+        'passwordConfirmation.same' => 'Passwords do not match',
 
         'selectedPaymentMethod.required' => 'Please select a payment method',
         'selectedPaymentMethod.in' => 'Please select a valid payment method',
@@ -593,6 +575,41 @@ class CheckoutForm extends Component
         return $this->validate();
     }
 
+    // Method to create user account
+    protected function createUserAccount()
+    {
+        try {
+            // Check if user already exists
+            $existingUser = \App\Models\User::where('email', $this->email)->first();
+            if ($existingUser) {
+                Log::warning('Attempted to create account for existing email', ['email' => $this->email]);
+                return null;
+            }
+
+            // Create new user
+            $user = \App\Models\User::create([
+                'name' => $this->firstName . ' ' . $this->lastName,
+                'email' => $this->email,
+                'password' => bcrypt($this->password),
+            ]);
+
+            Log::info('User account created during checkout', ['user_id' => $user->id, 'email' => $user->email]);
+
+            // Log the user in
+            Auth::login($user);
+
+            Log::info('User logged in after account creation', ['user_id' => $user->id]);
+
+            return $user;
+        } catch (Exception $e) {
+            Log::error('Error creating user account during checkout', [
+                'error' => $e->getMessage(),
+                'email' => $this->email
+            ]);
+            return null;
+        }
+    }
+
     // Method to handle form submission
     public function submitForm()
     {
@@ -603,7 +620,17 @@ class CheckoutForm extends Component
             // Validate stock availability before proceeding
             $this->validateStockAvailability();
 
-            // Store form data in session
+            // Create user account if requested and not already logged in
+            if ($this->createAccount && !Auth::check()) {
+                $user = $this->createUserAccount();
+                if ($user) {
+                    // Dispatch event to refresh navbar/header components
+                    $this->dispatch('user-logged-in');
+                    $this->dispatch('$refresh');
+                }
+            }
+
+            // Store form data in session (using billing address as shipping address)
             $sessionData = [
                 'first_name' => $this->firstName,
                 'last_name' => $this->lastName,
@@ -614,12 +641,12 @@ class CheckoutForm extends Component
                 'billing_city' => $this->billingCity,
                 'billing_address' => $this->billingAddress,
                 'billing_building_number' => $this->billingBuildingNumber,
-                'shipping_country_id' => $this->useBillingForShipping ? $this->billingCountry : $this->shippingCountry,
-                'shipping_state' => $this->useBillingForShipping ? $this->billingState : $this->shippingState,
-                'shipping_city' => $this->useBillingForShipping ? $this->billingCity : $this->shippingCity,
-                'shipping_address' => $this->useBillingForShipping ? $this->billingAddress : $this->shippingAddress,
-                'shipping_building_number' => $this->useBillingForShipping ? $this->billingBuildingNumber : $this->shippingBuildingNumber,
-                'use_billing_for_shipping' => $this->useBillingForShipping,
+                'shipping_country_id' => $this->billingCountry,
+                'shipping_state' => $this->billingState,
+                'shipping_city' => $this->billingCity,
+                'shipping_address' => $this->billingAddress,
+                'shipping_building_number' => $this->billingBuildingNumber,
+                'use_billing_for_shipping' => true,
                 'payment_method' => $this->selectedPaymentMethod,
                 'paypal_payment_type' => $this->paypalPaymentType,
                 'currency' => $this->currentCurrency,
@@ -635,22 +662,90 @@ class CheckoutForm extends Component
             // Clear any previous session data and set new data
             session(['checkout_data' => $sessionData]);
 
-            // Submit form via JavaScript with session data
+            // Submit form via JavaScript with fresh CSRF token
             $this->js('
-                const form = document.createElement("form");
-                form.method = "POST";
-                form.action = "' . route('checkout.process') . '";
+                // Refresh CSRF token before submission
+                fetch("' . route('csrf.refresh') . '", {
+                    method: "GET",
+                    credentials: "same-origin",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("✅ CSRF token refreshed successfully");
 
-                const csrfToken = document.createElement("input");
-                csrfToken.type = "hidden";
-                csrfToken.name = "_token";
-                csrfToken.value = "' . csrf_token() . '";
-                form.appendChild(csrfToken);
+                    // Update meta tag with fresh token
+                    const metaToken = document.querySelector("meta[name=\'csrf-token\']");
+                    if (metaToken && data.csrf_token) {
+                        metaToken.setAttribute("content", data.csrf_token);
+                    }
 
-                document.body.appendChild(form);
-                form.submit();
+                    // Use the fresh token
+                    const csrfToken = data.csrf_token || (metaToken ? metaToken.getAttribute("content") : "");
+
+                    // Create and submit form
+                    const form = document.createElement("form");
+                    form.method = "POST";
+                    form.action = "' . route('checkout.process') . '";
+
+                    const csrfInput = document.createElement("input");
+                    csrfInput.type = "hidden";
+                    csrfInput.name = "_token";
+                    csrfInput.value = csrfToken;
+                    form.appendChild(csrfInput);
+
+                    document.body.appendChild(form);
+                    form.submit();
+                })
+                .catch(error => {
+                    console.error("❌ Error refreshing CSRF token:", error);
+                    // Fallback: Try with current token
+                    const metaToken = document.querySelector("meta[name=\'csrf-token\']");
+                    const csrfToken = metaToken ? metaToken.getAttribute("content") : "";
+
+                    if (csrfToken) {
+                        const form = document.createElement("form");
+                        form.method = "POST";
+                        form.action = "' . route('checkout.process') . '";
+
+                        const csrfInput = document.createElement("input");
+                        csrfInput.type = "hidden";
+                        csrfInput.name = "_token";
+                        csrfInput.value = csrfToken;
+                        form.appendChild(csrfInput);
+
+                        document.body.appendChild(form);
+                        form.submit();
+                    } else {
+                        alert("Session expired. Please refresh the page and try again.");
+                    }
+                });
             ');
         } catch (Exception $e) {
+            // Log the full error for debugging
+            Log::error('Checkout form submission error', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => Auth::id(),
+                'form_data' => [
+                    'firstName' => $this->firstName,
+                    'lastName' => $this->lastName,
+                    'email' => $this->email,
+                    'phoneNumber' => $this->phoneNumber,
+                    'billingCountry' => $this->billingCountry,
+                    'selectedPaymentMethod' => $this->selectedPaymentMethod,
+                ]
+            ]);
+
+            // Check if it's a validation error
+            if ($e instanceof \Illuminate\Validation\ValidationException) {
+                // Validation errors are already shown by Livewire
+                return;
+            }
 
             // Check if it's a stock-related error
             $errorMessage = $e->getMessage();
@@ -662,9 +757,9 @@ class CheckoutForm extends Component
                     'showCartButton' => true
                 ]);
             } else {
-                // Show generic error
+                // Show generic error with more details
                 $this->dispatch('showNotification', [
-                    'message' => 'An error occurred while submitting the form. Please try again.',
+                    'message' => 'An error occurred while submitting the form: ' . $errorMessage,
                     'type' => 'error'
                 ]);
             }

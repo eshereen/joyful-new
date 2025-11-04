@@ -321,8 +321,6 @@ public function registerMediaCollections(?Media $media = null): void
             //     ->height(1200)
             //     ->nonQueued();
         });
+
 }
-
-
-
 }

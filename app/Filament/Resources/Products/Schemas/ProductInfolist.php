@@ -35,7 +35,7 @@ class ProductInfolist
                     ->placeholder('-'),
                 TextEntry::make('deleted_at')
                     ->dateTime()
-                    ->visible(fn (Product $record): bool => $record->trashed()),
+                    ->visible(fn (Product $record): bool => !empty($record->deleted_at)),
             ]);
     }
 }

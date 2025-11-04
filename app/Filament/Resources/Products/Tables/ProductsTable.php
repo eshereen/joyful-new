@@ -23,6 +23,9 @@ class ProductsTable
                     ->sortable(),
                 TextColumn::make('name')
                     ->searchable(),
+                  TextColumn::make('description')
+                ->html()
+                ->limit(100),
 
                 SpatieMediaLibraryImageColumn::make('main_image')
                 ->collection('main_image')

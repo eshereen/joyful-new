@@ -1,7 +1,7 @@
  <!-- Footer -->
  <footer class="bg-dark-brown text-white py-12 px-4">
     <div class="container mx-auto">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-center md:text-left">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-center md:text-left justifiy-evenly">
             <!-- Brand -->
             <div class="animate-on-scroll">
                 <h3 class="text-2xl font-bold mb-4">Joyful</h3>

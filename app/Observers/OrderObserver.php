@@ -8,6 +8,7 @@ use App\Mail\OrderShipped;
 use App\Events\PaymentStatusChanged;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Exception;
 
 class OrderObserver
 {
@@ -17,14 +18,26 @@ class OrderObserver
         if ($order->coupon_id) {
             $order->coupon->increment('used_count');
         }
+
         //Send email to customer after order created
-        // Temporarily disabled for debugging
         try {
+            Log::info('Attempting to send order confirmation email', [
+                'order_id' => $order->id,
+                'email' => $order->email
+            ]);
+
             Mail::to($order->email)->later(now()->addSeconds(5), new OrderCreated($order));
+
+            Log::info('Order confirmation email queued successfully', [
+                'order_id' => $order->id,
+                'email' => $order->email
+            ]);
         } catch (Exception $e) {
             Log::error('Email sending failed but continuing with order', [
                 'order_id' => $order->id,
-                'error' => $e->getMessage()
+                'email' => $order->email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
         }
     }
@@ -62,8 +75,26 @@ class OrderObserver
         }
 
         //Send Mail to customer after shipping
-        //if($order->wasChanged('status') && $order->status == 'shipped'){
-           // Mail::to($order->email)->queue(new OrderShipped($order));
+        if($order->wasChanged('status') && $order->status->value === 'shipped'){
+            try {
+                Log::info('Attempting to send order shipped email', [
+                    'order_id' => $order->id,
+                    'email' => $order->email
+                ]);
+
+                Mail::to($order->email)->queue(new OrderShipped($order));
+
+                Log::info('Order shipped email queued successfully', [
+                    'order_id' => $order->id,
+                    'email' => $order->email
+                ]);
+            } catch (Exception $e) {
+                Log::error('Shipped email sending failed', [
+                    'order_id' => $order->id,
+                    'email' => $order->email,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
     }
-
+}

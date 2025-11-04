@@ -53,7 +53,6 @@ class FrontendController extends Controller
             ->where('active', true)
             ->orderBy('featured', 'desc')
             ->orderBy('created_at', 'desc')
-            ->limit(8)
             ->get();
         });
 
