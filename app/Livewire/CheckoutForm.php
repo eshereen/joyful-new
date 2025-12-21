@@ -10,6 +10,7 @@ use App\Services\PaymentMethodResolver;
 use App\Services\CountryCurrencyService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class CheckoutForm extends Component
  {
@@ -78,9 +79,9 @@ class CheckoutForm extends Component
     public $paypalPaymentType = 'credit_card';
     public $creditCardAvailable = false;
 
-    // Currency info
-    public $currentCurrency = 'USD';
-    public $currentSymbol = '$';
+    // Currency info (always local currency)
+    public $currentCurrency = 'EGP';
+    public $currentSymbol = 'E£';
 
     // Loyalty points discount
     public $loyaltyDiscount = 0;
@@ -170,10 +171,9 @@ class CheckoutForm extends Component
         if (Auth::check()) {
             $user = Auth::user();
 
-            // Split name into first and last name
-            $nameParts = explode(' ', $user->name, 2);
-            $this->firstName = $nameParts[0] ?? '';
-            $this->lastName = $nameParts[1] ?? '';
+            $displayName = trim($user->name ?? '') ?: 'Customer';
+            $this->firstName = $displayName;
+            $this->lastName = $displayName;
 
             $this->email = $user->email;
 
@@ -210,18 +210,14 @@ class CheckoutForm extends Component
             // Update session with the country code
             session(['checkout_country' => $countryCode]);
 
-            // Load payment methods and currency info
+            // Load payment methods
             $this->updatePaymentMethods($countryCode);
 
-            // Only update currency if not already set in session
-            if (!session('currency_initialized', false)) {
-                $this->updateCurrencyInfo($countryCode);
-            } else {
-                $currencyService = app(CountryCurrencyService::class);
-                $currencyInfo = $currencyService->getCurrentCurrencyInfo();
-                $this->currentCurrency = $currencyInfo['currency_code'];
-                $this->currentSymbol = $currencyInfo['currency_symbol'];
-            }
+            // Set default currency (always local)
+            $currencyService = app(CountryCurrencyService::class);
+            $currencyInfo = $currencyService->getCurrentCurrencyInfo();
+            $this->currentCurrency = $currencyInfo['currency_code'];
+            $this->currentSymbol = $currencyInfo['currency_symbol'];
         }
 
         // Calculate initial totals
@@ -259,135 +255,13 @@ class CheckoutForm extends Component
         // Update payment methods
         $this->updatePaymentMethods($country->code);
 
-        // Update currency
-        $this->updateCurrencyInfo($country->code);
-
         // Dispatch events to other components
         $this->dispatch('country-changed', $country->code);
-        $this->dispatch('currency-changed', $this->currentCurrency);
-        $this->dispatch('global-currency-changed', $this->currentCurrency);
-
-        // Force refresh of the CurrencySelector component specifically
-        $this->dispatch('$refresh')->to('currency-selector');
-
-        // Force refresh currency selector and update session
-        $this->js("
-            console.log('🚀 CheckoutForm: Updating currency to: {$this->currentCurrency}');
-
-            // Dispatch browser events that all components can listen to
-            window.dispatchEvent(new CustomEvent('livewire-currency-changed', {
-                detail: { currency: '{$this->currentCurrency}', symbol: '{$this->currentSymbol}' }
-            }));
-            window.dispatchEvent(new CustomEvent('livewire-country-changed', {
-                detail: { countryCode: '{$country->code}', currency: '{$this->currentCurrency}' }
-            }));
-
-            console.log('📡 Browser events dispatched for currency: {$this->currentCurrency}');
-
-            // Update session currency via AJAX
-            fetch('/currency/change', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    currency: '{$this->currentCurrency}'
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('✅ Currency updated in session:', data);
-
-                                // Find and refresh the currency selector component
-                if (window.Livewire) {
-                    // Try multiple selectors to find the currency component
-                    let currencySelector = document.querySelector('.currency-selector[wire\\\\:id]');
-                    if (!currencySelector) {
-                        currencySelector = document.querySelector('[wire\\\\:id*=\"currency-selector\"]');
-                    }
-                    if (!currencySelector) {
-                        currencySelector = document.querySelector('[x-data*=\"open\"][wire\\\\:id]');
-                    }
-
-                    console.log('🔍 Looking for CurrencySelector component...');
-                    console.log('Found currency selector:', currencySelector ? 'YES' : 'NO');
-
-                    if (currencySelector) {
-                        const wireId = currencySelector.getAttribute('wire:id');
-                        console.log('📍 Found CurrencySelector with wire:id:', wireId);
-
-                        try {
-                            const livewireComponent = window.Livewire.find(wireId);
-                            console.log('🔗 Livewire component found:', livewireComponent ? 'YES' : 'NO');
-
-                            if (livewireComponent) {
-                                console.log('🔄 Refreshing CurrencySelector component');
-                                livewireComponent.\$refresh();
-
-                                // Also call updateToCurrency directly
-                                setTimeout(() => {
-                                    console.log('📞 Calling updateToCurrency with: {$this->currentCurrency}');
-                                    livewireComponent.call('updateToCurrency', '{$this->currentCurrency}');
-                                }, 200);
-
-                                // Double-check with another method
-                                setTimeout(() => {
-                                    console.log('📞 Second attempt: handleCurrencyChanged');
-                                    livewireComponent.call('handleCurrencyChanged', '{$this->currentCurrency}');
-                                }, 400);
-                            }
-                        } catch (e) {
-                            console.error('❌ Error refreshing CurrencySelector:', e);
-                        }
-                    } else {
-                        console.error('⚠️ CurrencySelector component not found at all');
-                        console.log('Available Livewire components:', window.Livewire.all());
-                    }
-
-                    // Also refresh order summary component
-                    const orderSummary = document.querySelector('[wire\\\\:id*=\"order-summary\"]');
-                    if (orderSummary) {
-                        const orderWireId = orderSummary.getAttribute('wire:id');
-                        try {
-                            const orderLivewireComponent = window.Livewire.find(orderWireId);
-                            if (orderLivewireComponent) {
-                                console.log('🔄 Refreshing OrderSummary component');
-                                orderLivewireComponent.\$refresh();
-                            }
-                        } catch (e) {
-                            console.error('Error refreshing OrderSummary component:', e);
-                        }
-                    }
-
-                    // Also refresh cart-wishlist-counts component if exists
-                    const cartComponent = document.querySelector('[wire\\\\:id*=\"cart-wishlist-counts\"]');
-                    if (cartComponent) {
-                        const cartWireId = cartComponent.getAttribute('wire:id');
-                        try {
-                            const cartLivewireComponent = window.Livewire.find(cartWireId);
-                            if (cartLivewireComponent) {
-                                console.log('🔄 Refreshing cart component for currency update');
-                                cartLivewireComponent.\$refresh();
-                            }
-                        } catch (e) {
-                            console.error('Error refreshing cart component:', e);
-                        }
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('❌ Error updating currency:', error);
-            });
-        ");
 
         Log::info('CheckoutForm: Country change complete', [
             'country_code' => $country->code,
             'payment_methods' => $this->paymentMethods,
-            'selected_method' => $this->selectedPaymentMethod,
-            'currency' => $this->currentCurrency,
-            'events_dispatched' => ['country-changed', 'currency-changed']
+            'selected_method' => $this->selectedPaymentMethod
         ]);
     }
 
@@ -419,27 +293,6 @@ class CheckoutForm extends Component
         }
     }
 
-    protected function updateCurrencyInfo($countryCode)
-    {
-        try {
-            $currencyService = app(CountryCurrencyService::class);
-
-            // When country changes, always update currency based on country
-            // This allows country changes to override manual selections
-            $country = Country::where('code', $countryCode)->first();
-            if ($country) {
-                $currencyService->setPreferredCountry($country->id);
-            }
-
-            // Get updated currency info
-            $currencyInfo = $currencyService->getCurrentCurrencyInfo();
-            $this->currentCurrency = $currencyInfo['currency_code'];
-            $this->currentSymbol = $currencyInfo['currency_symbol'];
-        } catch (Exception $e) {
-
-            // Keep current currency on error
-        }
-    }
 
     public function getCountriesProperty()
     {
@@ -461,7 +314,7 @@ class CheckoutForm extends Component
             'billingAddress' => 'required|string|min:5|max:255',
             'billingBuildingNumber' => 'nullable|string|max:50',
 
-            'selectedPaymentMethod' => 'required|string|in:paypal,paymob,cash_on_delivery',
+            'selectedPaymentMethod' => 'required|string|in:paypal,paymob,cash_on_delivery,instapay',
         ];
 
         // Add password validation if user wants to create an account
@@ -524,17 +377,14 @@ class CheckoutForm extends Component
     public function handleCountryChanged($countryCode)
     {
         $this->updatePaymentMethods($countryCode);
-        $this->updateCurrencyInfo($countryCode);
     }
 
     #[On('loyaltyPointsApplied')]
     public function handleLoyaltyPointsApplied($data)
     {
         $this->loyaltyPointsApplied = $data['points'];
-        // Convert loyalty discount from USD to local currency using service container
-        $loyaltyDiscountUSD = $data['value'];
-        $currencyService = app(CountryCurrencyService::class);
-        $this->loyaltyDiscount = $currencyService->convertFromUSD($loyaltyDiscountUSD, $this->currentCurrency);
+        // Loyalty discount is already in local currency
+        $this->loyaltyDiscount = $data['value'];
     }
 
     #[On('loyaltyPointsRemoved')]
@@ -621,12 +471,15 @@ class CheckoutForm extends Component
             $this->validateStockAvailability();
 
             // Create user account if requested and not already logged in
+            $userCreated = false;
             if ($this->createAccount && !Auth::check()) {
                 $user = $this->createUserAccount();
                 if ($user) {
-                    // Dispatch event to refresh navbar/header components
-                    $this->dispatch('user-logged-in');
-                    $this->dispatch('$refresh');
+                    $userCreated = true;
+                    Log::info('User account created and logged in during checkout', [
+                        'user_id' => $user->id,
+                        'email' => $user->email
+                    ]);
                 }
             }
 
@@ -662,8 +515,16 @@ class CheckoutForm extends Component
             // Clear any previous session data and set new data
             session(['checkout_data' => $sessionData]);
 
+            // If user was just created, add a flag to handle CSRF properly
+            $accountJustCreated = $userCreated ? 'true' : 'false';
+            $delayMs = $userCreated ? 1000 : 0; // Add 1 second delay if account was created
+
             // Submit form via JavaScript with fresh CSRF token
             $this->js('
+                const accountJustCreated = ' . $accountJustCreated . ';
+                const delayMs = ' . $delayMs . ';
+
+                function submitCheckout() {
                 // Refresh CSRF token before submission
                 fetch("' . route('csrf.refresh') . '", {
                     method: "GET",
@@ -722,6 +583,15 @@ class CheckoutForm extends Component
                         alert("Session expired. Please refresh the page and try again.");
                     }
                 });
+                }
+
+                // If account was just created, wait for session to be properly saved
+                if (accountJustCreated && delayMs > 0) {
+                    console.log("⏳ Account just created, waiting " + delayMs + "ms for session to save...");
+                    setTimeout(submitCheckout, delayMs);
+                } else {
+                    submitCheckout();
+                }
             ');
         } catch (Exception $e) {
             // Log the full error for debugging
@@ -775,6 +645,34 @@ class CheckoutForm extends Component
         $stockIssues = [];
 
         foreach ($cart as $item) {
+            $itemType = $this->cartItemType($item);
+            $requestedQuantity = $item['quantity'];
+
+            if ($itemType === 'collection') {
+                $collectionId = $this->getCollectionIdFromCartItem($item);
+                if (!$collectionId) {
+                    $stockIssues[] = 'Collection reference missing from cart item.';
+                    continue;
+                }
+
+                $collection = \App\Models\Collection::find($collectionId);
+                if (!$collection) {
+                    $stockIssues[] = "Collection not found: {$collectionId}";
+                    continue;
+                }
+
+                $available = (int) ($collection->stock ?? 0);
+                if ($available < $requestedQuantity) {
+                    if ($available <= 0) {
+                        $stockIssues[] = "❌ Collection '{$collection->name}' is out of stock.";
+                    } else {
+                        $stockIssues[] = "⚠️ Only {$available} set(s) available for '{$collection->name}'.";
+                    }
+                }
+
+                continue;
+            }
+
             $productId = null;
             if (strpos($item['id'], '-') !== false) {
                 $parts = explode('-', $item['id']);
@@ -784,7 +682,6 @@ class CheckoutForm extends Component
             }
 
             $variantId = $item['attributes']['variant_id'] ?? null;
-            $requestedQuantity = $item['quantity'];
 
             if ($variantId) {
                 // Check variant stock
@@ -799,9 +696,9 @@ class CheckoutForm extends Component
                     $availableStock = $variant->stock;
 
                     if ($availableStock <= 0) {
-                        $stockIssues[] = "❌ Product '{$product->name}' (Size: {$variant->size}, Color: {$variant->color}) is out of stock.";
+                        $stockIssues[] = "❌ Product '{$product?->name}' (Size: {$variant->size}, Color: {$variant->color}) is out of stock.";
                     } else {
-                        $stockIssues[] = "⚠️ Only {$availableStock} items available for '{$product->name}' (Size: {$variant->size}, Color: {$variant->color}).";
+                        $stockIssues[] = "⚠️ Only {$availableStock} items available for '{$product?->name}' (Size: {$variant->size}, Color: {$variant->color}).";
                     }
                 }
             } else {
@@ -843,6 +740,32 @@ class CheckoutForm extends Component
         $cart = app(\App\Services\CartService::class)->getCart();
 
         foreach ($cart as $item) {
+            $itemType = $this->cartItemType($item);
+            $requestedQuantity = $item['quantity'];
+
+            if ($itemType === 'collection') {
+                $collectionId = $this->getCollectionIdFromCartItem($item);
+                if (!$collectionId) {
+                    throw new \Exception('Collection reference missing from cart item.');
+                }
+
+                $collection = \App\Models\Collection::find($collectionId);
+                if (!$collection) {
+                    throw new \Exception("Collection not found: {$collectionId}");
+                }
+
+                $available = (int) ($collection->stock ?? 0);
+                if ($available < $requestedQuantity) {
+                    if ($available <= 0) {
+                        throw new \Exception("❌ Collection '{$collection->name}' is currently out of stock. Please remove it from your cart.");
+                    }
+
+                    throw new \Exception("⚠️ Only {$available} set(s) available for '{$collection->name}'. Please reduce the quantity in your cart.");
+                }
+
+                continue;
+            }
+
             $productId = null;
             if (strpos($item['id'], '-') !== false) {
                 $parts = explode('-', $item['id']);
@@ -852,7 +775,6 @@ class CheckoutForm extends Component
             }
 
             $variantId = $item['attributes']['variant_id'] ?? null;
-            $requestedQuantity = $item['quantity'];
 
             if ($variantId) {
                 // Check variant stock
@@ -866,9 +788,9 @@ class CheckoutForm extends Component
                     $availableStock = $variant->stock;
 
                     if ($availableStock <= 0) {
-                        throw new \Exception("❌ Product '{$product->name}' (Size: {$variant->size}, Color: {$variant->color}) is currently out of stock. Please remove it from your cart or try a different variant.");
+                        throw new \Exception("❌ Product '{$product?->name}' (Size: {$variant->size}, Color: {$variant->color}) is currently out of stock. Please remove it from your cart or try a different variant.");
                     } else {
-                        throw new \Exception("⚠️ Only {$availableStock} items available for '{$product->name}' (Size: {$variant->size}, Color: {$variant->color}). Please reduce the quantity in your cart.");
+                        throw new \Exception("⚠️ Only {$availableStock} items available for '{$product?->name}' (Size: {$variant->size}, Color: {$variant->color}). Please reduce the quantity in your cart.");
                     }
                 }
             } else {
@@ -889,6 +811,32 @@ class CheckoutForm extends Component
                 }
             }
         }
+    }
+
+    protected function cartItemType(array $item): string
+    {
+        if (($item['attributes']['item_type'] ?? null) === 'collection') {
+            return 'collection';
+        }
+
+        if (isset($item['id']) && Str::startsWith($item['id'], 'collection-')) {
+            return 'collection';
+        }
+
+        return 'product';
+    }
+
+    protected function getCollectionIdFromCartItem(array $item): ?int
+    {
+        if (isset($item['attributes']['collection_id'])) {
+            return (int) $item['attributes']['collection_id'];
+        }
+
+        if (isset($item['id']) && Str::startsWith($item['id'], 'collection-')) {
+            return (int) Str::after($item['id'], 'collection-');
+        }
+
+        return null;
     }
 
     public function render()

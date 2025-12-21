@@ -64,6 +64,21 @@ class VerifyCsrfToken extends Middleware
             }
         }
 
+        // Special handling for checkout process when user just logged in
+        if ($request->is('checkout') && $request->isMethod('POST')) {
+            // Check if this is right after login by looking at session data
+            if (session()->has('checkout_data')) {
+                \Log::info('Checkout request detected with session data - validating token gracefully', [
+                    'has_checkout_data' => true,
+                    'auth_check' => \Illuminate\Support\Facades\Auth::check()
+                ]);
+
+                // Allow the request if we have valid checkout data in session
+                // This handles the case where user was just logged in during checkout
+                return false; // Continue with normal CSRF check, but we logged for debugging
+            }
+        }
+
         return false;
     }
 

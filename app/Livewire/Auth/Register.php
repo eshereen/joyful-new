@@ -39,11 +39,11 @@ class Register extends Component
         $validated['password'] = Hash::make($validated['password']);
 
         event(new Registered(($user = User::create($validated))));
-        $coupon = Coupon::where('code', 'NEW_USER10')->first();
+       // $coupon = Coupon::where('code', 'NEW_USER10')->first();
         // Send welcome email
-      
+
         Mail::to($user->email)->queue(
-            (new RegisterMail($user, $coupon))->delay(now()->addSeconds(5))
+            (new RegisterMail($user))->delay(now()->addSeconds(5))
         );
 
         Auth::login($user);

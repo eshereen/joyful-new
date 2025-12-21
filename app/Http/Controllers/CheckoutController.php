@@ -8,6 +8,7 @@ use App\Payments\Gateways\CodGateway;
 use App\Payments\Gateways\PaypalGateway;
 use App\Models\User;
 use App\Models\Order;
+use App\Models\Collection;
 use App\Models\Country;
 use App\Models\Customer;
 use App\Events\OrderPlaced;
@@ -146,7 +147,7 @@ class CheckoutController extends Controller
             'shipping_address' => 'required|string|max:500',
             'shipping_building_number' => 'nullable|string|max:50',
             'use_billing_for_shipping' => 'boolean',
-            'payment_method' => 'required|string|in:paypal,paymob,cash_on_delivery',
+            'payment_method' => 'required|string|in:paypal,paymob,cash_on_delivery,instapay',
             'paypal_payment_type' => 'nullable|string|in:paypal_account,credit_card',
             'currency' => 'required|string|max:3',
             'loyalty_discount' => 'nullable|numeric|min:0',
@@ -206,6 +207,29 @@ class CheckoutController extends Controller
             $this->createOrderItems($order, $cart);
             Log::info('Order items created successfully');
 
+            // Handle COD and Instapay - skip payment gateway, go directly to thank you page
+            if (in_array($validated['payment_method'], ['cash_on_delivery', 'instapay'])) {
+                // Clear cart
+                $this->cartService->clearCart();
+                DB::commit();
+
+                if ($validated['payment_method'] === 'cash_on_delivery') {
+                    Log::info('COD payment completed, redirecting to thank you page', [
+                        'payment_method' => $validated['payment_method'],
+                        'order_id' => $order->id
+                    ]);
+                    return redirect()->route('thankyou', ['order' => $order->id])
+                        ->with('success', 'Order placed successfully! Payment will be collected on delivery.');
+                } else {
+                    // Instapay
+                    Log::info('Instapay payment completed, redirecting to thank you page', [
+                        'payment_method' => $validated['payment_method'],
+                        'order_id' => $order->id
+                    ]);
+                    return redirect()->route('thankyou', ['order' => $order->id])
+                        ->with('success', 'Order placed successfully! We are waiting for the screen shot of your payment.');
+                }
+            }
 
             // Check availability for the selected country
             $country = Country::find($order->country_id);
@@ -269,15 +293,7 @@ class CheckoutController extends Controller
             ]);
 
             // Handle different payment methods appropriately
-            if ($validated['payment_method'] === 'cash_on_delivery') {
-                // COD should never redirect - go directly to thank you page
-                Log::info('COD payment completed, redirecting to thank you page', [
-                    'payment_method' => $validated['payment_method'],
-                    'order_id' => $order->id
-                ]);
-                return redirect()->route('thankyou', ['order' => $order->id])
-                    ->with('success', 'Order placed successfully! Payment will be collected on delivery.');
-            } elseif ($validated['payment_method'] === 'paymob' && !empty($result['redirect_url'])) {
+            if ($validated['payment_method'] === 'paymob' && !empty($result['redirect_url'])) {
                 // Paymob needs external redirect
                 Log::info('Authenticated checkout: Redirecting to Paymob gateway', [
                     'payment_method' => $validated['payment_method'],
@@ -344,7 +360,7 @@ class CheckoutController extends Controller
             'shipping_address' => 'required|string|max:500',
             'shipping_building_number' => 'nullable|string|max:50',
             'use_billing_for_shipping' => 'boolean',
-            'payment_method' => 'required|string|in:paypal,paymob,cash_on_delivery',
+            'payment_method' => 'required|string|in:paypal,paymob,cash_on_delivery,instapay',
             'paypal_payment_type' => 'nullable|string|in:paypal_account,credit_card',
             'currency' => 'required|string|max:3',
             'notes' => 'nullable|string|max:1000',
@@ -381,7 +397,30 @@ class CheckoutController extends Controller
             $this->createOrderItems($order, $cart);
 
 
-            // Clear cart
+            // Handle COD and Instapay - skip payment gateway, go directly to thank you page
+            if (in_array($validated['payment_method'], ['cash_on_delivery', 'instapay'])) {
+                // Clear cart
+                $this->cartService->clearCart();
+                DB::commit();
+
+                if ($validated['payment_method'] === 'cash_on_delivery') {
+                    Log::info('Guest checkout: COD payment completed, redirecting to thank you page', [
+                        'payment_method' => $validated['payment_method'],
+                        'order_id' => $order->id
+                    ]);
+                    return redirect()->route('thankyou', ['order' => $order->id])
+                        ->with('success', 'Order placed successfully! Payment will be collected on delivery.');
+                } else {
+                    // Instapay
+                    Log::info('Guest checkout: Instapay payment completed, redirecting to thank you page', [
+                        'payment_method' => $validated['payment_method'],
+                        'order_id' => $order->id
+                    ]);
+                    return redirect()->route('thankyou', ['order' => $order->id])
+                        ->with('success', 'Order placed successfully! We are waiting for the screen shot of your payment.');
+                }
+            }
+
             // Check availability for the selected country
             $country = Country::find($order->country_id);
             $available = $this->methodResolver->availableForCountry($country->code ?? 'EG'); // ensure you store ISO code
@@ -415,14 +454,10 @@ class CheckoutController extends Controller
                 $paymentType = $validated['paypal_payment_type'];
             }
 
-
-
             // For credit card payments, don't set a return URL since they don't redirect back from PayPal
             if ($paymentType === 'credit_card') {
                 $returnUrl = null;
             }
-
-
 
             $result = $this->paymentService->createPayment(
                 $order,
@@ -452,15 +487,7 @@ class CheckoutController extends Controller
             ]);
 
             // Handle different payment methods appropriately
-            if ($validated['payment_method'] === 'cash_on_delivery') {
-                // COD should never redirect - go directly to thank you page
-                Log::info('Guest checkout: COD payment completed, redirecting to thank you page', [
-                    'payment_method' => $validated['payment_method'],
-                    'order_id' => $order->id
-                ]);
-                return redirect()->route('thankyou', ['order' => $order->id])
-                    ->with('success', 'Order placed successfully! Payment will be collected on delivery.');
-            } elseif ($validated['payment_method'] === 'paymob' && !empty($result['redirect_url'])) {
+            if ($validated['payment_method'] === 'paymob' && !empty($result['redirect_url'])) {
                 // Paymob needs external redirect
                 Log::info('Guest checkout: Redirecting to Paymob gateway', [
                     'payment_method' => $validated['payment_method'],
@@ -672,30 +699,24 @@ class CheckoutController extends Controller
         ]);
 
         foreach ($cart as $item) {
+            $itemType = $this->cartItemType($item);
+
             Log::info('Processing cart item', [
                 'item' => $item,
                 'has_id' => isset($item['id']),
                 'has_quantity' => isset($item['quantity']),
                 'has_price' => isset($item['price']),
                 'has_attributes' => isset($item['attributes']),
-                'variant_id' => $item['attributes']['variant_id'] ?? null
+                'variant_id' => $item['attributes']['variant_id'] ?? null,
+                'item_type' => $itemType,
             ]);
 
-            // Extract product ID from the cart item ID (format: "product_id-variant_id")
-            $productId = null;
-            if (strpos($item['id'], '-') !== false) {
-                $parts = explode('-', $item['id']);
-                $productId = (int) $parts[0];
-            } else {
-                $productId = (int) $item['id'];
+            if ($itemType === 'collection') {
+                $this->createCollectionOrderItem($order, $item);
+                continue;
             }
 
-
-
-            // Validate that we have a valid product ID
-            if (!$productId || $productId <= 0) {
-                throw new Exception("Invalid product ID extracted from cart item: {$item['id']}");
-            }
+            $productId = $this->resolveProductIdFromCartItem($item);
 
             try {
                 $order->items()->create([
@@ -726,52 +747,168 @@ class CheckoutController extends Controller
     protected function validateStockAvailability($cart)
     {
         foreach ($cart as $item) {
-            $productId = null;
-            if (strpos($item['id'], '-') !== false) {
-                $parts = explode('-', $item['id']);
-                $productId = (int) $parts[0];
-            } else {
-                $productId = (int) $item['id'];
+            $itemType = $this->cartItemType($item);
+
+            if ($itemType === 'collection') {
+                $collectionId = $this->getCollectionIdFromCartItem($item);
+                if (!$collectionId) {
+                    throw new Exception('Collection reference missing from cart item.');
+                }
+
+                $collection = Collection::find($collectionId);
+                if (!$collection) {
+                    throw new Exception("Collection not found (ID: {$collectionId}).");
+                }
+
+                $this->assertCollectionStock($collection, $item['quantity']);
+                continue;
             }
 
+            $productId = $this->resolveProductIdFromCartItem($item);
             $variantId = $item['attributes']['variant_id'] ?? null;
             $requestedQuantity = $item['quantity'];
 
-            if ($variantId) {
-                // Check variant stock
-                $variant = \App\Models\Variant::find($variantId);
-                if (!$variant) {
-                    throw new \Exception("Product variant not found: {$variantId}");
-                }
-
-                if ($variant->stock < $requestedQuantity) {
-                    $product = \App\Models\Product::find($productId);
-                    $availableStock = $variant->stock;
-
-                    if ($availableStock == 0) {
-                        throw new \Exception("Product '{$product->name}' (Size: {$variant->size}, Color: {$variant->color}) is out of stock.");
-                    } else {
-                        throw new \Exception("Only {$availableStock} items available for '{$product->name}' (Size: {$variant->size}, Color: {$variant->color}). Please select fewer quantity.");
-                    }
-                }
-            } else {
-                // Check product stock for simple products
-                $product = \App\Models\Product::find($productId);
-                if (!$product) {
-                    throw new \Exception("Product not found: {$productId}");
-                }
-
-                if ($product->quantity < $requestedQuantity) {
-                    $availableStock = $product->quantity;
-
-                    if ($availableStock == 0) {
-                        throw new \Exception("Product '{$product->name}' is out of stock.");
-                    } else {
-                        throw new \Exception("Only {$availableStock} items available for '{$product->name}'. Please select fewer quantity.");
-                    }
-                }
-            }
+            $this->assertProductStock($productId, $variantId, $requestedQuantity);
         }
+    }
+
+    protected function resolveProductIdFromCartItem(array $item): int
+    {
+        if (!isset($item['id'])) {
+            throw new Exception('Cart item is missing an identifier.');
+        }
+
+        if (Str::startsWith($item['id'], 'collection-')) {
+            throw new Exception('Cart item references a collection and cannot be treated as a product.');
+        }
+
+        if (strpos($item['id'], '-') !== false) {
+            $parts = explode('-', $item['id']);
+            $productId = (int) $parts[0];
+        } else {
+            $productId = (int) $item['id'];
+        }
+
+        if ($productId <= 0) {
+            throw new Exception("Invalid product ID extracted from cart item: {$item['id']}");
+        }
+
+        return $productId;
+    }
+
+    protected function assertProductStock(int $productId, ?int $variantId, int $requestedQuantity, ?string $productName = null): void
+    {
+        if ($variantId) {
+            $variant = \App\Models\Variant::find($variantId);
+            if (!$variant) {
+                throw new Exception("Product variant not found: {$variantId}");
+            }
+
+            if ($variant->stock < $requestedQuantity) {
+                $product = \App\Models\Product::find($productId);
+                $availableStock = $variant->stock;
+                $name = $productName ?? $product->name ?? 'Product';
+
+                if ($availableStock == 0) {
+                    throw new Exception("Product '{$name}' (Variant ID: {$variantId}) is out of stock.");
+                }
+
+                throw new Exception("Only {$availableStock} items available for '{$name}'. Please select fewer quantity.");
+            }
+
+            return;
+        }
+
+        $product = \App\Models\Product::find($productId);
+        if (!$product) {
+            throw new Exception("Product not found: {$productId}");
+        }
+
+        $availableStock = $product->quantity ?? 0;
+        if ($availableStock < $requestedQuantity) {
+            $name = $productName ?? $product->name ?? 'Product';
+
+            if ($availableStock == 0) {
+                throw new Exception("Product '{$name}' is out of stock.");
+            }
+
+            throw new Exception("Only {$availableStock} items available for '{$name}'. Please select fewer quantity.");
+        }
+    }
+
+    protected function assertCollectionStock(Collection $collection, int $requestedQuantity): void
+    {
+        $available = (int) ($collection->stock ?? 0);
+
+        if ($available < $requestedQuantity) {
+            if ($available <= 0) {
+                throw new Exception("Collection '{$collection->name}' is out of stock.");
+            }
+
+            throw new Exception("Only {$available} set(s) available for '{$collection->name}'. Please reduce the quantity.");
+        }
+    }
+
+    protected function createCollectionOrderItem(Order $order, array $item): void
+    {
+        $collectionId = $this->getCollectionIdFromCartItem($item);
+        if (!$collectionId) {
+            throw new Exception('Collection reference missing from cart item.');
+        }
+
+        $collection = Collection::find($collectionId);
+        if (!$collection) {
+            throw new Exception("Collection not found (ID: {$collectionId}).");
+        }
+
+        $this->assertCollectionStock($collection, $item['quantity']);
+
+        try {
+            $order->items()->create([
+                'collection_id' => $collection->id,
+                'product_id' => null,
+                'variant_id' => null,
+                'variant_size' => null,
+                'variant_wick_type' => null,
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+            ]);
+        } catch (Exception $e) {
+            Log::error('Failed to create collection order item', [
+                'order_id' => $order->id,
+                'collection_id' => $collection->id,
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
+    }
+
+    protected function cartItemType(array $item): string
+    {
+        if (($item['attributes']['item_type'] ?? null) === 'collection') {
+            return 'collection';
+        }
+
+        if (isset($item['id']) && Str::startsWith($item['id'], 'collection-')) {
+            return 'collection';
+        }
+
+        return 'product';
+    }
+
+    protected function getCollectionIdFromCartItem(array $item): ?int
+    {
+        if (isset($item['attributes']['collection_id'])) {
+            return (int) $item['attributes']['collection_id'];
+        }
+
+        if (isset($item['id']) && Str::startsWith($item['id'], 'collection-')) {
+            return (int) Str::after($item['id'], 'collection-');
+        }
+
+        return null;
     }
 
     /**

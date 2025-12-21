@@ -9,7 +9,6 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\CheckoutController;
-use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\CategoriesController;
@@ -23,20 +22,12 @@ Route::get('/', [FrontendController::class, 'index'])->name('home');
 /*** Products Pages */
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
-Route::get('/product/{product:slug}', [ProductController::class, 'show'])->name('product.show');
+Route::get('/product/{product:slug?}', [ProductController::class, 'show'])->name('product.show');
 Route::get('/collections', [CollectionController::class, 'index'])->name('collections.index');
 Route::get('/collection/{collection:slug}', [CollectionController::class, 'show'])->name('collection.show');
 Route::get('/categories', [CategoriesController::class, 'all'])->name('categories.all');
 Route::get('/categories/{categorySlug}/subcategory/{subcategorySlug}', [CategoriesController::class, 'subcategory'])->name('categories.subcategory');
 Route::get('/categories/{categorySlug?}', [CategoriesController::class, 'index'])->name('categories.index');
-
-// Currency routes
-Route::prefix('currency')->group(function () {
-    Route::post('/change', [CurrencyController::class, 'changeCurrency'])->name('currency.change');
-    Route::get('/current', [CurrencyController::class, 'getCurrentCurrency'])->name('currency.current');
-    Route::post('/reset', [CurrencyController::class, 'resetToDetected'])->name('currency.reset');
-});
-
 
 // CSRF token refresh routes
 Route::get('/csrf-token', function () {
@@ -44,10 +35,12 @@ Route::get('/csrf-token', function () {
 })->name('csrf.token');
 
 Route::get('/refresh-csrf', function () {
-    // Regenerate the session token
-    request()->session()->regenerateToken();
+    // Don't regenerate token if user just logged in
+    // This prevents invalidating the token during checkout account creation
+    $token = csrf_token();
+
     return response()->json([
-        'csrf_token' => csrf_token(),
+        'csrf_token' => $token,
         'success' => true
     ]);
 })->name('csrf.refresh');
@@ -100,6 +93,7 @@ Route::get('/checkout/confirmation/{order}', [\App\Http\Controllers\PaymentContr
 Route::prefix('cart')->group(function () {
     Route::get('/', [CartController::class, 'index'])->name('cart.index');
     Route::post('/add/{product}', [CartController::class, 'add'])->name('cart.add');
+    Route::post('/add-collection/{collection:id}', [CartController::class, 'addCollection'])->name('cart.add-collection');
     Route::patch('/{rowId}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/{rowId}', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/clear', [CartController::class, 'clear'])->name('cart.clear');

@@ -2,15 +2,17 @@
 
 namespace App\Services;
 
+use App\Contracts\CartServiceContract;
 use Exception;
 use App\Models\Product;
+use App\Models\Collection;
 // Note: We avoid hard-coding a specific Variant class here because the
 // project uses a custom variants schema (size, wick_type) instead of color.
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
 
-class CartService
+class CartService implements CartServiceContract
 {
     protected $cartKey = 'shopping_cart';
 
@@ -44,7 +46,8 @@ class CartService
 
             $options = [
                 'image' => $product->getFirstMediaUrl('main_image'),
-                'slug' => $product->slug
+                'slug' => $product->slug,
+                'item_type' => 'product',
             ];
 
             // Check if product already exists in cart
@@ -97,10 +100,7 @@ class CartService
     public function updateQuantity($rowId, $quantity)
     {
         try {
-            Log::info('CartService updateQuantity called', [
-                'rowId' => $rowId,
-                'newQuantity' => $quantity
-            ]);
+
 
             $cart = $this->getCart();
             Log::info('Cart before quantity update', ['count' => $cart->count()]);
@@ -110,6 +110,26 @@ class CartService
             if (!$itemToUpdate) {
                 Log::warning('Item not found for quantity update', ['rowId' => $rowId]);
                 return false;
+            }
+
+            if (($itemToUpdate['attributes']['item_type'] ?? null) === 'collection') {
+                $collectionId = $itemToUpdate['attributes']['collection_id'] ?? null;
+                if (!$collectionId) {
+                    throw new Exception('Collection reference missing from cart item.');
+                }
+
+                $collection = Collection::find($collectionId);
+                if (!$collection) {
+                    throw new Exception('Collection no longer exists.');
+                }
+
+                if ($collection->stock <= 0) {
+                    throw new Exception("Collection '{$collection->name}' is out of stock.");
+                }
+
+                if ($quantity > $collection->stock) {
+                    throw new Exception("Only {$collection->stock} set(s) of '{$collection->name}' are available.");
+                }
             }
 
             Log::info('Item found for quantity update', [
@@ -239,9 +259,10 @@ class CartService
                 'size' => $variant->size ?? null,
                 // Support either wick-based variants or color-based ones
                 'wick_type' => $variant->wick_type ?? null,
-               
+
                 'slug' => $product->slug,
-                'variant_id' => $variant->id
+                'variant_id' => $variant->id,
+                'item_type' => 'product',
             ];
 
             // Use variant price if available, otherwise product price
@@ -298,6 +319,96 @@ class CartService
             Log::error('Error adding product with variant to cart', [
                 'product_id' => $product->id,
                 'variant_id' => $variant->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Add a collection as a single bundled item to the cart.
+     */
+    public function addCollection(Collection $collection, $quantity = 1)
+    {
+        try {
+            $collection = Collection::find($collection->id) ?? $collection;
+
+            $price = (float) ($collection->price ?? 0);
+
+            if ($price <= 0) {
+                throw new Exception('Collection price is not set.');
+            }
+
+            if ($quantity < 1) {
+                throw new Exception('Quantity must be at least 1.');
+            }
+
+            $stock = (int) ($collection->stock ?? 0);
+            if ($stock <= 0) {
+                throw new Exception("Collection '{$collection->name}' is out of stock.");
+            }
+
+            $cart = $this->getCart();
+            $itemId = 'collection-' . $collection->id;
+            $options = [
+                'image' => $collection->getFirstMediaUrl('main_image'),
+                'slug' => $collection->slug,
+                'item_type' => 'collection',
+                'collection_id' => $collection->id,
+            ];
+
+            $existingItem = $cart->firstWhere('id', $itemId);
+            $existingQuantity = $existingItem['quantity'] ?? 0;
+            $newTotalQuantity = $existingQuantity + $quantity;
+
+            if ($newTotalQuantity > $stock) {
+                $remaining = max($stock - $existingQuantity, 0);
+                $message = $remaining > 0
+                    ? "Only {$remaining} more set(s) of '{$collection->name}' are available. Please reduce the quantity."
+                    : "All available stock for '{$collection->name}' is already in your cart. Please adjust the quantity before adding more.";
+                throw new Exception($message);
+            }
+
+            if ($existingItem) {
+                $updatedItem = $existingItem;
+                $updatedItem['quantity'] = $newTotalQuantity;
+
+                $cart = $cart->map(function ($item) use ($itemId, $updatedItem) {
+                    return $item['id'] === $itemId ? $updatedItem : $item;
+                });
+
+                $cartItem = $updatedItem;
+            } else {
+                $cartItem = [
+                    'id' => $itemId,
+                    'rowId' => uniqid('collection_'),
+                    'name' => $collection->name,
+                    'price' => $price,
+                    'quantity' => $quantity,
+                    'attributes' => $options,
+                    'associatedModel' => $collection,
+                ];
+
+                $cart->push($cartItem);
+            }
+
+            Session::put($this->getCartKey(), $cart);
+
+            Log::info('Collection bundle added to cart', [
+                'collection_id' => $collection->id,
+                'collection_name' => $collection->name,
+                'quantity_added' => $quantity,
+                'cart_count' => $this->getCount(),
+            ]);
+
+            return [
+                'success' => true,
+                'item' => $cartItem,
+            ];
+        } catch (Exception $e) {
+            Log::error('Error adding collection to cart', [
+                'collection_id' => $collection->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);

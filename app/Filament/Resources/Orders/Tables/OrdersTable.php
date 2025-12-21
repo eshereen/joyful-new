@@ -28,7 +28,8 @@ class OrdersTable
                     ->searchable(),
                 TextColumn::make('last_name')
                     ->searchable(),
-                TextColumn::make('country_id')
+                    TextColumn::make('country.name')
+                        ->label('Country')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('state')

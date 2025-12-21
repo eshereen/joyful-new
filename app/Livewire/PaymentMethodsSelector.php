@@ -54,8 +54,8 @@ class PaymentMethodsSelector extends Component
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            // Set default methods in case of error - COD only for now
-            $this->methods = ['cash_on_delivery'];
+            // Set default methods in case of error - COD and Instapay
+            $this->methods = ['cash_on_delivery', 'instapay'];
             $this->selectedMethod = 'cash_on_delivery';
 
             // Dispatch default events even in error case
@@ -66,14 +66,14 @@ class PaymentMethodsSelector extends Component
 
         protected function loadMethods()
     {
-        // TEMPORARY: Only show Cash on Delivery (COD) for now
+        // TEMPORARY: Only show Cash on Delivery (COD) and Instapay for now
         // Other payment methods are commented out and will be activated later
 
         // Get the current country from the checkout form or session
         $countryCode = $this->getCurrentCountryCode();
 
-        // Only enable COD for now - other methods commented out
-        $this->methods = ['cash_on_delivery'];
+        // Enable COD and Instapay - other methods commented out
+        $this->methods = ['cash_on_delivery', 'instapay'];
 
         // COMMENTED OUT: Other payment methods will be activated later
         // $resolver = app(PaymentMethodResolver::class);
@@ -224,9 +224,9 @@ class PaymentMethodsSelector extends Component
             session(['checkout_country' => $countryCode]);
             Log::info('PaymentMethodsSelector: Session updated', ['session_country' => session('checkout_country')]);
 
-            // TEMPORARY: Only enable COD for now - other methods commented out
-            $this->methods = ['cash_on_delivery'];
-            Log::info('PaymentMethodsSelector: Methods set to COD only', ['methods' => $this->methods]);
+            // TEMPORARY: Only enable COD and Instapay for now - other methods commented out
+            $this->methods = ['cash_on_delivery', 'instapay'];
+            Log::info('PaymentMethodsSelector: Methods set to COD and Instapay', ['methods' => $this->methods]);
 
             // COMMENTED OUT: Other payment methods will be activated later
             // $resolver = app(PaymentMethodResolver::class);

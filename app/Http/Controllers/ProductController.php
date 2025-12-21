@@ -3,17 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use App\Services\CountryCurrencyService;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    protected $currencyService;
-
-    public function __construct(CountryCurrencyService $currencyService)
-    {
-        $this->currencyService = $currencyService;
-    }
 
     /**
      * Display product listing
@@ -22,18 +15,11 @@ class ProductController extends Controller
     {
         $title = 'Products | Joyful';
 
-        // Get current currency info once
-        $currencyInfo = $this->currencyService->getCurrentCurrencyInfo();
-
-        // Build cache key for currency-aware caching
-        $cacheKey = 'products_index_' . md5($currencyInfo['currency_code'] . '_' . request()->get('page', 1));
-
         // Cache the entire result for better performance
-        $result = cache()->remember($cacheKey, 300, function () use ($currencyInfo) {
+        $result = cache()->remember('products_index', 300, function () {
             // Optimized query with specific selects and eager loading
-            $products = Product::with([
+            return Product::with([
                 'category:id,name,slug',
-
                 'media' => function ($query) {
                     $query->select('id', 'model_id', 'model_type', 'collection_name', 'file_name', 'disk')
                         ->whereIn('collection_name', ['main_image', 'product_images'])
@@ -47,35 +33,43 @@ class ProductController extends Controller
                 ->where('products.active', true)
                 ->orderBy('created_at', 'desc')
                 ->paginate(12);
-
-            // Convert product prices to current currency (batch processing)
-            $products->getCollection()->transform(function ($product) use ($currencyInfo) {
-                // Convert variant prices
-                if ($product->variants && $product->variants->isNotEmpty()) {
-                    $product->variants->transform(function ($variant) use ($currencyInfo) {
-                        if ($variant->price) {
-                            $variant->converted_price = $this->currencyService->convertFromUSD($variant->price, $currencyInfo['currency_code']);
-                        }
-                        if ($variant->compare_price && $variant->compare_price > 0) {
-                            $variant->converted_compare_price = $this->currencyService->convertFromUSD($variant->compare_price, $currencyInfo['currency_code']);
-                        }
-                        return $variant;
-                    });
-                }
-                return $product;
-            });
-
-            return $products;
         });
 
-        return view('products.index', compact('currencyInfo', 'title'));
+        return view('products.index', compact('result', 'title'));
     }
 
     /**
-     * Show single product page
+     * Show single product page or collection bundle
      */
-    public function show(Product $product)
+    public function show(Request $request, Product $product = null)
     {
+        $collection = null;
+
+        // Check if collection ID is provided in query parameter (for collection bundles)
+        if ($request->has('collection')) {
+            $collection = \App\Models\Collection::with('media')->find($request->get('collection'));
+
+            if (!$collection) {
+                abort(404, 'Collection not found');
+            }
+
+            // Collections are standalone bundles - no product needed
+            $title = $collection->name . ' | Joyful';
+            $currencyInfo = $this->currencyService->getCurrentCurrencyInfo();
+
+            return view('products.show', [
+                'product' => null, // No product for collections
+                'collection' => $collection,
+                'currencyInfo' => $currencyInfo,
+                'title' => $title
+            ]);
+        }
+
+        // If no collection and no product, 404
+        if (!$product) {
+            abort(404, 'Product not found');
+        }
+
         $title = $product->name . ' | Joyful';
 
         // Get current currency info
@@ -115,7 +109,7 @@ class ProductController extends Controller
             return $product;
         });
 
-        return view('products.show', compact('product', 'currencyInfo', 'title'));
+        return view('products.show', compact('product', 'collection', 'currencyInfo', 'title'));
     }
 
     /**

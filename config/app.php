@@ -123,6 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Instapay Phone Number
+    |--------------------------------------------------------------------------
+    |
+    | This is the phone number customers should send Instapay payment
+    | screenshots to via WhatsApp.
+    |
+    */
 
+    'instapay_phone' => env('INSTAPAY_PHONE', '+20 1023210384'),
 
 ];

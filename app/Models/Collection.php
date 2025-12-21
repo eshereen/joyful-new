@@ -14,7 +14,18 @@ class Collection extends Model implements HasMedia
 {
     /** @use HasFactory<CollectionFactory> */
     use HasFactory, Sluggable,InteractsWithMedia;
-    protected $fillable = ['name', 'slug', 'description','active'];
+    protected $fillable = ['name', 'slug', 'description', 'price', 'stock', 'active'];
+
+    protected $casts = [
+        'price' => 'decimal:2',
+        'stock' => 'integer',
+        'active' => 'boolean',
+    ];
+
+    protected $attributes = [
+        'price' => null,
+        'stock' => 0,
+    ];
 
     /**
      * Get the route key for the model.
@@ -29,6 +40,33 @@ class Collection extends Model implements HasMedia
         return $this->belongsToMany(Product::class, 'collection_products', 'collection_id', 'product_id')
             ->using(CollectionProduct::class)
             ->withTimestamps();
+    }
+
+    /**
+     * Get the collection price (use set price or calculate from products)
+     */
+    public function getPriceAttribute($value)
+    {
+        // If price is set in database, return it
+        if ($value !== null && $value > 0) {
+            return (float) $value;
+        }
+
+        // Otherwise, calculate from products
+        if ($this->relationLoaded('products')) {
+            return $this->products
+                ->where('active', true)
+                ->sum(function ($product) {
+                    return $product->price ?? 0;
+                });
+        }
+
+        return $this->products()
+            ->where('active', true)
+            ->get()
+            ->sum(function ($product) {
+                return $product->price ?? 0;
+            });
     }
 
 

@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Collection;
 use App\Models\Subcategory;
+use App\Models\Review;
 use Illuminate\Http\Request;
 
 class FrontendController extends Controller
@@ -28,10 +29,18 @@ class FrontendController extends Controller
                 ->get();
         });
 
-        // Collections
+        // Collections - eager load media for images and products
         $collections = cache()->remember('home_collections', 1800, function () {
-            return Collection::withCount(['products' => function ($q) {
-                    $q->where('products.active', true); 
+            return Collection::with([
+                'media' => function ($q) {
+                    $q->where('collection_name', 'main_image');
+                },
+                'products' => function ($q) {
+                    $q->where('products.active', true);
+                }
+            ])
+                ->withCount(['products' => function ($q) {
+                    $q->where('products.active', true);
                 }])
                 ->where('collections.active', true)
                 ->take(4)
@@ -55,8 +64,9 @@ class FrontendController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         });
+        $reviews = Review::latest()->get();
 
-        return view('home-1', compact('title', 'categories', 'collections', 'products'));
+        return view('home-1', compact('title', 'categories', 'collections', 'products','reviews'));
     }
 
 

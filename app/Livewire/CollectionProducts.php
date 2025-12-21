@@ -274,9 +274,11 @@ class CollectionProducts extends Component
             ]);
         }
 
+        // Get products that belong to this collection only
+        // The products() relationship automatically filters by collection_id through the pivot table
         $query = $this->collection->products()
             ->with(['category', 'subcategory', 'media', 'variants'])
-            ->where('active', true);
+            ->where('products.active', true);
 
         // Apply category filter
         if ($this->selectedCategories) {
@@ -296,20 +298,49 @@ class CollectionProducts extends Component
         // Apply best seller logic for newest sort
         if ($this->sortBy === 'newest') {
             $bestSellerService = app(BestSellerService::class);
-            $products = $bestSellerService->getProductsWithBestSellerPriority(
-                $query, 
-                12, 
+            $allProducts = $bestSellerService->getProductsWithBestSellerPriority(
+                $query,
+                null, // Get all products, we'll paginate manually
                 null,
                 $this->collection->id
             );
-            
+
+            // Ensure we have a collection
+            if (!$allProducts instanceof \Illuminate\Support\Collection) {
+                $allProducts = collect($allProducts);
+            }
+
+            // Safety check: Ensure only products from this collection are included
+            // This prevents any products from other collections from appearing
+            $collectionProductIds = $this->collection->products()->pluck('products.id')->toArray();
+            if (!empty($collectionProductIds)) {
+                $allProducts = $allProducts->filter(function ($product) use ($collectionProductIds) {
+                    return isset($product->id) && in_array($product->id, $collectionProductIds);
+                })->values();
+            } else {
+                // If no products in collection, return empty collection
+                $allProducts = collect([]);
+            }
+
+            // Get current page
+            $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+            $perPage = 12;
+            $total = $allProducts->count();
+
+            // Slice the collection for current page
+            $items = $allProducts->slice(($currentPage - 1) * $perPage, $perPage)->values();
+
             // Convert to paginated format
             $products = new \Illuminate\Pagination\LengthAwarePaginator(
-                $products,
-                $products->count(),
-                12,
-                1,
-                ['path' => request()->url(), 'pageName' => 'page']
+                $items,
+                $total,
+                $perPage,
+                $currentPage,
+                [
+                    'path' => request()->url(),
+                    'pageName' => 'page',
+                    'query' => request()->query()
+                ]
             );
         } else {
             // Apply sorting for other cases
@@ -326,6 +357,22 @@ class CollectionProducts extends Component
             }
 
             $products = $query->paginate(12);
+        }
+
+        // Ensure products is always a paginator instance
+        if (!$products instanceof \Illuminate\Contracts\Pagination\Paginator) {
+            // Fallback: create empty paginator
+            $products = new \Illuminate\Pagination\LengthAwarePaginator(
+                collect([]),
+                0,
+                12,
+                1,
+                [
+                    'path' => request()->url(),
+                    'pageName' => 'page',
+                    'query' => request()->query()
+                ]
+            );
         }
 
         return view('livewire.collection-products', [

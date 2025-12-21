@@ -178,75 +178,14 @@ class ProductIndex extends Component
 
     protected function convertProductPrices($products = null)
     {
-        if ($this->currencyCode === 'USD') {
-            return; // No conversion needed
-        }
-
-        try {
-            $currencyService = app(CountryCurrencyService::class);
-
-            // Convert all product prices in the collection
-            $productsToConvert = $products;
-            if ($productsToConvert) {
-                foreach ($productsToConvert as $product) {
-                    // Convert variant prices
-                    if ($product->variants && $product->variants->isNotEmpty()) {
-                        $product->variants->transform(function ($variant) use ($currencyService) {
-                            if ($variant->price) {
-                                $variant->converted_price = $currencyService->convertFromUSD($variant->price, $this->currencyCode);
-                            }
-                            if ($variant->compare_price && $variant->compare_price > 0) {
-                                $variant->converted_compare_price = $currencyService->convertFromUSD($variant->compare_price, $this->currencyCode);
-                            }
-                            return $variant;
-                        });
-                    }
-                }
-            }
-        } catch (Exception $e) {
-            // Handle conversion error silently
-        }
+        // No conversion needed - project only uses local currency (EGP)
+        return;
     }
 
     protected function convertVariantPrices()
     {
-        if ($this->currencyCode === 'USD' || !$this->selectedProduct) {
-            Log::info('ProductIndex: Skipping conversion', [
-                'currency_code' => $this->currencyCode,
-                'has_product' => !$this->selectedProduct
-            ]);
-            return; // No conversion needed
-        }
-
-        try {
-            $currencyService = app(CountryCurrencyService::class);
-
-            Log::info('ProductIndex: Starting variant price conversion', [
-                'currency_code' => $this->currencyCode,
-                'currency_symbol' => $this->currencySymbol,
-                'product_price' => $this->selectedProduct->price
-            ]);
-
-            // Note: Product price conversion removed - we only convert variant prices now
-
-            // Convert variant prices with bulk processing
-            if ($this->selectedProduct->variants) {
-                $this->selectedProduct->variants->transform(function ($variant) use ($currencyService) {
-                    if ($variant->price) {
-                        $originalPrice = $variant->price;
-                        $variant->converted_price = $currencyService->convertFromUSD($originalPrice, $this->currencyCode);
-                        Log::info('ProductIndex: Variant price converted', [
-                            'variant_id' => $variant->id,
-                            'original' => $originalPrice,
-                            'converted' => $variant->converted_price
-                        ]);
-                    }
-                    return $variant;
-                });
-            }
-        } catch (Exception $e) {
-            Log::error('ProductIndex: Conversion error', ['error' => $e->getMessage()]);
-        }
+        // No conversion needed - project only uses local currency (EGP)
+        return;
     }
 
     public function updatingSearch()
@@ -351,36 +290,8 @@ class ProductIndex extends Component
         ]);
 
 
-        // Ensure the selected variant has converted prices
-        if ($this->selectedVariant && $this->currencyCode !== 'USD') {
-            $currencyService = app(CountryCurrencyService::class);
-
-            // If variant has its own price, convert it
-            if ($this->selectedVariant->price) {
-                $originalPrice = $this->selectedVariant->price;
-                $this->selectedVariant->converted_price = $currencyService->convertFromUSD($originalPrice, $this->currencyCode);
-
-                Log::info('ProductIndex: Variant price converted in selectVariant', [
-                    'variant_id' => $variantId,
-                    'original_price' => $originalPrice,
-                    'converted_price' => $this->selectedVariant->converted_price,
-                    'currency_code' => $this->currencyCode
-                ]);
-            } else {
-                // If variant has no price, use product price
-                if ($this->selectedProduct->price) {
-                    $originalPrice = $this->selectedProduct->price;
-                    $this->selectedVariant->converted_price = $currencyService->convertFromUSD($originalPrice, $this->currencyCode);
-
-                    Log::info('ProductIndex: Using product price for variant', [
-                        'variant_id' => $variantId,
-                        'product_price' => $originalPrice,
-                        'converted_price' => $this->selectedVariant->converted_price,
-                        'currency_code' => $this->currencyCode
-                    ]);
-                }
-            }
-        }
+        // No conversion needed - project only uses local currency (EGP)
+        // Prices are already in EGP, so no conversion required
 
         // Reset quantity if it exceeds stock or if stock is invalid
         if ($this->selectedVariant) {
@@ -730,39 +641,8 @@ class ProductIndex extends Component
      */
     protected function convertProductPricesOptimized($products)
     {
-        try {
-            $currencyService = app(CountryCurrencyService::class);
-
-            // Skip conversion if disabled or if already in default currency
-            if (!$currencyService->isConversionEnabled() || $this->currencyCode === $currencyService->getDefaultCurrency()) {
-                return; // No conversion needed
-            }
-
-            // Get the collection to transform
-            if ($products instanceof \Illuminate\Pagination\LengthAwarePaginator || $products instanceof \Illuminate\Pagination\Paginator) {
-                $collection = $products->getCollection();
-            } else {
-                $collection = $products;
-            }
-
-            // Transform the collection
-            $collection->transform(function ($product) use ($currencyService) {
-                if ($product->price) {
-                    $product->converted_price = $currencyService->convertFromUSD($product->price, $this->currencyCode);
-                }
-                if ($product->compare_price && $product->compare_price > 0) {
-                    $product->converted_compare_price = $currencyService->convertFromUSD($product->compare_price, $this->currencyCode);
-                }
-                return $product;
-            });
-
-            // If it was a paginator, set the transformed collection back
-            if ($products instanceof \Illuminate\Pagination\LengthAwarePaginator || $products instanceof \Illuminate\Pagination\Paginator) {
-                $products->setCollection($collection);
-            }
-        } catch (Exception $e) {
-            // Handle conversion error silently
-        }
+        // No conversion needed - project only uses local currency (EGP)
+        return;
     }
 
     /**

@@ -29,7 +29,7 @@
 }" x-init="window.addEventListener('scroll', () => { scrolled = window.scrollY > 50; });">
 
     <!-- Hero Section -->
-    <section class="overflow-hidden top-0 right-0 left-0 h-screen  realtive">
+    <section class="overflow-hidden top-0 right-0 left-0 h-screen realtive mb-0">
            <!-- Navbar -->
 
         <div class="absolute inset-0 z-0">
@@ -38,22 +38,29 @@
         </div>
 
         <div class="flex relative z-10 justify-center items-center px-4 h-full text-center text-white">
-            <div class="max-w-3xl">
+            <div class="max-w-4xl">
                 <h1 id="hero-title" class="text-5xl md:text-6xl lg:text-[120px] font-something mb-6">Bring joy to your space</h1>
-                <p class="mb-8 text-xl font-light md:text-2xl">Have a joyful time</p>
-                <button class="px-8 py-4 text-lg font-medium text-white rounded-full btn-primary bg-dark-brown">
+                <p class="mb-8 text-xl font-light md:text-2xl">Eco-friendly scented candles, handpoured with joy.</p>
+                <a href="{{ route('products.index') }}" class="px-8 py-4 text-lg font-medium text-white rounded-full btn-primary bg-dark-brown">
                     Shop Now
-                </button>
+                </a>
             </div>
         </div>
     </section>
-
+    <section class="py-20 bg-white">
+        <div class="container px-4 mx-auto">
+            <h1 class="text-4xl font-bold text-center playfair text-black relative z-10" >Our Collections</h1>
+        </div>
+    </section>
     <!-- Bar Section with Background Image -->
-    <section class="overflow-hidden relative h-48 md:h-56">
-        <div class="absolute inset-0 bg-fixed bg-center bg-cover" style="background-image: url('/imgs/background.jpg');">
-            <div class="flex absolute inset-0 justify-center items-center bg-black/20">
+    <section class="relative w-full h-48 sm:h-56 md:h-64 lg:h-72 xl:h-80 mt-4">
 
-            </div>
+        <div class="absolute inset-0 w-full h-full">
+            <img src="/imgs/background.jpg"
+                 alt="Background"
+                 class="w-full h-full object-cover object-center"
+                 loading="lazy">
+            <div class="absolute inset-0 bg-black/20"></div>
         </div>
     </section>
 
@@ -220,27 +227,13 @@
         </div>
     </section>
     <!-- Collections Section -->
-    @if($collections->count() >0)
+    @if($collections->count() > 0)
     <section class="py-20 bg-gray-50">
         <div class="container px-4 mx-auto">
-            <h3 class="mb-12 text-4xl font-bold text-center playfair" style="color: var(--dark-brown);">Our Collections</h3>
-
-            <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
-                @foreach($collections as $collection)
-                <div class="overflow-hidden relative rounded-lg shadow-lg collection-card">
-                    <img src="{{ $collection->getFirstMediaUrl('main_image') }}" alt="{{ $collection->name }}" class="object-cover w-full h-80" loading="lazy">
-                    <div class="flex absolute inset-0 flex-col justify-end p-6 text-white overlay-text">
-                        <h4 class="mb-2 text-2xl font-bold">{{ $collection->name }}</h4>
-                        <p class="mb-4">{{ $collection->description }}</p>
-                        <button class="py-2 w-48 font-medium text-center rounded-full btn-secondary">
-                            See Collection
-                        </button>
-                    </div>
-                </div>
-                @endforeach
-
-            </div>
-
+            <h3 class="mb-12 text-4xl font-bold text-center playfair" style="color: var(--dark-brown);">
+                Our Collections
+            </h3>
+           @livewire('collections-grid', ['collections' => $collections])
         </div>
     </section>
     @endif
@@ -266,9 +259,11 @@
     </section>
 
 <!--Review-->
-<section class="py-20 bg-white">
-@include('partials.review-slider')
-        </section>
+@if($reviews->count() > 0)
+    <section class="py-20 bg-white">
+        @include('partials.review-slider')
+    </section>
+@endif
 <!-- Contact Section -->
 <section class="overflow-hidden relative min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
     <!-- Decorative Background Elements -->
@@ -335,7 +330,12 @@
 
             <!-- Right Side - Form -->
             <div class="space-y-6">
-              <form id="contactForm" class="space-y-6">
+              <form id="contactForm" method="POST" action="{{ route('contact.store') }}" class="space-y-6">
+                @csrf
+
+                <!-- Honeypot field to prevent spam (hidden from users) -->
+                <input type="text" name="website" value="" style="position: absolute; left: -5000px;" tabindex="-1" autocomplete="off">
+
                 <!-- Name Field -->
                 <div class="group">
                   <label for="name" class="block mb-2 text-sm font-semibold text-gray-700 transition-colors group-focus-within:text-orange-600">
@@ -431,15 +431,39 @@
                 </button>
               </form>
 
-              <!-- Success Message (Hidden by default) -->
-              <div id="successMessage" class="hidden p-4 text-center bg-green-50 rounded-xl border-2 border-green-200">
-                <div class="flex justify-center items-center text-green-600">
-                  <svg class="mr-2 w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  <span class="font-medium">Thank you! Your message has been sent successfully.</span>
+              <!-- Success Message -->
+              @if(session('success'))
+              <div id="successMessage" class="p-6 text-center bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-300 shadow-lg animate-fade-in">
+                <div class="flex flex-col justify-center items-center">
+                  <div class="mb-3 p-3 bg-green-500 rounded-full">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  </div>
+                  <h4 class="mb-2 text-xl font-bold text-green-800">Message Sent Successfully! 🎉</h4>
+                  <p class="text-green-700">Thank you for reaching out! We'll get back to you soon.</p>
                 </div>
               </div>
+              @endif
+
+              <!-- Error Messages -->
+              @if($errors->any())
+              <div class="p-6 text-center bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border-2 border-red-300 shadow-lg animate-fade-in">
+                <div class="flex flex-col justify-center items-center">
+                  <div class="mb-3 p-3 bg-red-500 rounded-full">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                  </div>
+                  <h4 class="mb-2 text-xl font-bold text-red-800">Oops! Something went wrong</h4>
+                  <ul class="text-red-700">
+                    @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                  </ul>
+                </div>
+              </div>
+              @endif
             </div>
           </div>
         </div>
@@ -477,28 +501,43 @@
     </style>
 
     <script>
-      document.getElementById('contactForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+      // Handle success message display and auto-hide
+      @if(session('success'))
+        document.addEventListener('DOMContentLoaded', function() {
+          const successMessage = document.getElementById('successMessage');
+          if (successMessage) {
+            // Scroll to the success message smoothly
+            successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-        // Show success message
-        const successMessage = document.getElementById('successMessage');
-        successMessage.classList.remove('hidden');
+            // Auto-hide after 8 seconds
+            setTimeout(() => {
+              successMessage.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+              successMessage.style.opacity = '0';
+              successMessage.style.transform = 'translateY(-20px)';
 
-        // Reset form
-        this.reset();
-
-        // Hide success message after 5 seconds
-        setTimeout(() => {
-          successMessage.classList.add('hidden');
-        }, 5000);
-      });
+              // Remove from DOM after fade out
+              setTimeout(() => {
+                successMessage.remove();
+              }, 500);
+            }, 8000);
+          }
+        });
+      @endif
     </script>
   </section>
 
 
         <!-- Newsletter Section -->
-    <section class="py-40 bg-fixed bg-center bg-cover bg-gray-orange" style="background-image:url('/imgs/review.jpeg');background-position:cover; background-repeate:no-repeate" >
-        <div class="container px-4 mx-auto">
+    <section class="relative py-40 overflow-hidden">
+        <!-- Background Image -->
+        <img src="/imgs/review.jpeg"
+             alt="Newsletter Background"
+             class="absolute inset-0 w-full h-full object-cover object-center"
+             loading="lazy">
+        <div class="absolute inset-0 bg-black/40"></div>
+
+        <!-- Content -->
+        <div class="container relative z-10 px-4 mx-auto">
             <div class="mx-auto max-w-2xl text-center">
                 <h3 class="mb-4 text-4xl font-bold text-white playfair">Stay in the Loop</h3>
                 <p class="mb-8 text-lg text-gray-200">Subscribe to our newsletter for exclusive offers, new arrivals, and style inspiration.</p>

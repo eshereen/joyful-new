@@ -107,8 +107,12 @@
                                         <picture class="absolute top-0 left-0 w-full h-full transition-opacity duration-500"
                                                  :class="hover ? 'opacity-100' : 'opacity-0'">
                                             {{-- Modern formats first --}}
-                                            <source srcset="{{ $product->getFirstMediaUrl('product_images', 'zoom_avif') }}" type="image/avif">
-                                            <source srcset="{{ $product->getFirstMediaUrl('product_images', 'zoom_webp') }}" type="image/webp">
+                                            @php
+                                                $zoomWebp = $product->getFirstMediaUrl('product_images', 'zoom_webp');
+                                            @endphp
+                                            @if($zoomWebp)
+                                                <source srcset="{{ $zoomWebp }}" type="image/webp">
+                                            @endif
                                             {{-- Fallback for older browsers --}}
                                             <img src="{{ $galleryImage }}"
                                                  alt="{{ $product->name }}"

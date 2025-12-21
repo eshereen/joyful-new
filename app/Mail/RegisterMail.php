@@ -19,10 +19,10 @@ class RegisterMail extends Mailable implements ShouldQueue
     /**
      * Create a new message instance.
      */
-    public function __construct(public User $user, public Coupon $coupon)
+    public function __construct(public User $user)
     {
         $this->user = $user;
-        $this->coupon = $coupon;
+        //$this->coupon = $coupon;
     }
 
     /**

@@ -15,28 +15,55 @@
 
 
     <div class="flex flex-col gap-8 lg:flex-row">
-        <!-- Product Images -->
+        <!-- Product/Collection Images -->
         <div class="lg:w-1/2"
        x-data="{
-          currentImage: '{{ $product->getFirstMediaUrl('main_image') }}',
-          currentZoomImage: '{{ $product->getFirstMediaUrl('main_image', 'large_webp') }}',
+          currentImage: '{{ $collection && !$product ? ($collection->getFirstMediaUrl('main_image') ?: asset('imgs/logo.png')) : ($collection ? ($collection->getFirstMediaUrl('main_image') ?: asset('imgs/logo.png')) : ($product ? $product->getFirstMediaUrl('main_image') : asset('imgs/logo.png'))) }}',
+          currentZoomImage: '{{ $collection && !$product ? ($collection->getFirstMediaUrl('main_image', 'large_webp') ?: $collection->getFirstMediaUrl('main_image') ?: asset('imgs/logo.png')) : ($collection ? ($collection->getFirstMediaUrl('main_image', 'large_webp') ?: $collection->getFirstMediaUrl('main_image') ?: asset('imgs/logo.png')) : ($product ? $product->getFirstMediaUrl('main_image', 'large_webp') : asset('imgs/logo.png'))) }}',
            images: [
+               @if($collection && !$product)
+               {{-- Collection-only view (standalone bundle) --}}
+               {
+                   large: '{{ $collection->getFirstMediaUrl('main_image') ?: asset('imgs/logo.png') }}',
+                  zoom: '{{ $collection->getFirstMediaUrl('main_image', 'large_webp') ?: $collection->getFirstMediaUrl('main_image') ?: asset('imgs/logo.png') }}',
+                   medium: '{{ $collection->getFirstMediaUrl('main_image', 'medium_webp') ?: $collection->getFirstMediaUrl('main_image') ?: asset('imgs/logo.png') }}',
+                   thumb: '{{ $collection->getFirstMediaUrl('main_image', 'thumb_webp') ?: $collection->getFirstMediaUrl('main_image') ?: asset('imgs/logo.png') }}',
+               },
+               @foreach($collection->getMedia('main_image') as $image)
+               {
+                   large: '{{ $image->getUrl() }}',
+                  zoom: '{{ method_exists($image, 'hasGeneratedConversion') && $image->hasGeneratedConversion('zoom_webp') ? $image->getUrl('zoom_webp') : $image->getUrl() }}',
+                  medium: '{{ method_exists($image, 'hasGeneratedConversion') && $image->hasGeneratedConversion('medium_webp') ? $image->getUrl('medium_webp') : $image->getUrl() }}',
+                  thumb: '{{ method_exists($image, 'hasGeneratedConversion') && $image->hasGeneratedConversion('thumb_webp') ? $image->getUrl('thumb_webp') : $image->getUrl() }}',
+               },
+               @endforeach
+               @elseif($collection)
+               {{-- Product with collection context --}}
+               {
+                   large: '{{ $collection->getFirstMediaUrl('main_image') ?: asset('imgs/logo.png') }}',
+                  zoom: '{{ $collection->getFirstMediaUrl('main_image', 'large_webp') ?: $collection->getFirstMediaUrl('main_image') ?: asset('imgs/logo.png') }}',
+                   medium: '{{ $collection->getFirstMediaUrl('main_image', 'medium_webp') ?: $collection->getFirstMediaUrl('main_image') ?: asset('imgs/logo.png') }}',
+                   thumb: '{{ $collection->getFirstMediaUrl('main_image', 'thumb_webp') ?: $collection->getFirstMediaUrl('main_image') ?: asset('imgs/logo.png') }}',
+               },
+               @else
+               {{-- Regular product view --}}
                {
                    large: '{{ $product->getFirstMediaUrl('main_image') }}',
                   zoom: '{{ $product->getFirstMediaUrl('main_image', 'large_webp') }}',
                    medium: '{{ $product->getFirstMediaUrl('main_image', 'medium_webp') }}',
                    thumb: '{{ $product->getFirstMediaUrl('main_image', 'thumb_webp') }}',
-
                },
+               @if($product)
                @foreach($product->getMedia('product_images') as $image)
                {
                    large: '{{ $image->getUrl() }}',
                   zoom: '{{ method_exists($image, 'hasGeneratedConversion') && $image->hasGeneratedConversion('zoom_webp') ? $image->getUrl('zoom_webp') : $image->getUrl() }}',
                   medium: '{{ method_exists($image, 'hasGeneratedConversion') && $image->hasGeneratedConversion('medium_webp') ? $image->getUrl('medium_webp') : $image->getUrl() }}',
                   thumb: '{{ method_exists($image, 'hasGeneratedConversion') && $image->hasGeneratedConversion('thumb_webp') ? $image->getUrl('thumb_webp') : $image->getUrl() }}',
-
                },
                @endforeach
+               @endif
+               @endif
            ]
         }">
 
@@ -61,10 +88,10 @@
           <span class="sr-only" x-text="magnifierEnabled ? 'Disable magnifier' : 'Enable magnifier'"></span>
       </button>
 
-      <!-- Base product image (always visible) -->
+      <!-- Base product/collection image (always visible) -->
       <picture class="block w-full h-full select-none" :class="magnifierEnabled ? 'cursor-crosshair' : 'cursor-default'">
         <img :src="currentImage"
-             alt="{{ $product->name }}"
+             alt="{{ $collection && !$product ? $collection->name : ($collection ? $collection->name : ($product ? $product->name : 'Product')) }}"
              class="block object-cover object-center max-w-full max-h-full"
              style="object-position: center;"
              width="800"
@@ -93,7 +120,7 @@
                     <picture class="object-cover w-full h-24 transition-opacity hover:opacity-80">
                         <source :srcset="image.medium" type="image/webp">
                         <img :src="image.thumb"
-                            alt="{{ $product->name }}"
+                            alt="{{ $collection && !$product ? $collection->name : ($collection ? $collection->name : ($product ? $product->name : 'Product')) }}"
                             class="object-cover object-center w-full h-24"
                             style="object-position: center;"
                             width="150"
@@ -123,8 +150,9 @@
             --}}
 
             <div class="flex items-start justify-between mb-4">
-                <h1 class="text-3xl font-bold">{{ $product->name }}</h1>
+                <h1 class="text-3xl font-bold">{{ $collection && !$product ? $collection->name : ($collection ? $collection->name : ($product ? $product->name : 'Product')) }}</h1>
                 @auth
+                @if($product)
                 <button wire:click="toggleWishlist"
                         wire:loading.attr="disabled"
                         wire:target="toggleWishlist"
@@ -140,170 +168,244 @@
                         </svg>
                     </span>
                 </button>
+                @endif
                 @endauth
             </div>
 
             <div class="flex items-center mb-4">
-                @php
-                    // Get price from selected variant or first variant
-                    $displayVariant = $selectedVariant ?? $product->variants->first();
-                    $displayPrice = $displayVariant ? ($displayVariant->converted_price ?? $displayVariant->price) : 0;
-                    $displayComparePrice = $displayVariant && $displayVariant->compare_price > 0 ? ($displayVariant->converted_compare_price ?? $displayVariant->compare_price) : 0;
-                @endphp
-                @if($displayComparePrice > 0)
-                <span class="mr-3 text-2xl font-bold text-dark-brown">
-                    {{ $currencySymbol }}{{ number_format($displayPrice, 2) }}
-                </span>
-                <span class="text-lg text-gray-500 line-through">
-                    {{ $currencySymbol }}{{ number_format($displayComparePrice, 2) }}
-                </span>
-                <span class="px-2 py-1 ml-3 text-sm text-dark-brown bg-yellow-100 rounded">
-                    Save {{ round(100 - ($displayPrice / $displayComparePrice * 100)) }}%
-                </span>
-                @else
-                <span class="text-2xl font-bold text-dark-brown">
-                    {{ $currencySymbol }}{{ number_format($displayPrice, 2) }}
-                </span>
+                @if($collection && !$product)
+                    {{-- Collection-only view (standalone bundle) --}}
+                    @php
+                        $collectionPrice = $collection->price ?? 0;
+                    @endphp
+                    <span class="text-2xl font-bold text-dark-brown">
+                        {{ $currencySymbol }}{{ number_format($collectionPrice, 2) }}
+                    </span>
+                @elseif($collection)
+                    {{-- Product with collection context --}}
+                    @php
+                        $collectionPrice = $collection->price ?? 0;
+                    @endphp
+                    <span class="text-2xl font-bold text-dark-brown">
+                        {{ $currencySymbol }}{{ number_format($collectionPrice, 2) }}
+                    </span>
+                @elseif($product)
+                    @php
+                        // Get price from selected variant or first variant
+                        $displayVariant = $selectedVariant ?? $product->variants->first();
+                        $displayPrice = $displayVariant ? ($displayVariant->converted_price ?? $displayVariant->price) : 0;
+                        $displayComparePrice = $displayVariant && $displayVariant->compare_price > 0 ? ($displayVariant->converted_compare_price ?? $displayVariant->compare_price) : 0;
+                    @endphp
+                    @if($displayComparePrice > 0)
+                    <span class="mr-3 text-2xl font-bold text-dark-brown">
+                        {{ $currencySymbol }}{{ number_format($displayPrice, 2) }}
+                    </span>
+                    <span class="text-lg text-gray-500 line-through">
+                        {{ $currencySymbol }}{{ number_format($displayComparePrice, 2) }}
+                    </span>
+                    <span class="px-2 py-1 ml-3 text-sm text-dark-brown bg-yellow-100 rounded">
+                        Save {{ round(100 - ($displayPrice / $displayComparePrice * 100)) }}%
+                    </span>
+                    @else
+                    <span class="text-2xl font-bold text-dark-brown">
+                        {{ $currencySymbol }}{{ number_format($displayPrice, 2) }}
+                    </span>
+                    @endif
                 @endif
             </div>
 
             <div class="mb-6">
-
-                @if($product->variants->isNotEmpty())
-                <div class="mb-6">
-                    <!-- Size Selection -->
-                    @php
-                        $sizes = $product->variants->pluck('size')->filter()->unique()->values();
-                    @endphp
-                    @if($sizes->count() > 0)
-                    <div class="mb-4">
-                        <h4 class="mb-2 text-sm font-medium text-gray-700">Size</h4>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach($sizes as $size)
-                                <button type="button"
-                                        wire:click="selectSize('{{ $size }}')"
-                                        class="px-2 py-1 flex items-center justify-center border rounded-md text-sm {{ $selectedSize == $size ? 'bg-dark-brown text-white border-dark-brown' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}"
-                                        @if($selectedSize == $size) aria-pressed="true" @endif>
-                                    {{ $size }} gm
-                                </button>
-                            @endforeach
+                @if(!$collection)
+                    @if($product->variants->isNotEmpty())
+                    <div class="mb-6">
+                        <!-- Size Selection -->
+                        @php
+                            $sizes = $product->variants->pluck('size')->filter()->unique()->values();
+                        @endphp
+                        @if($sizes->count() > 0)
+                        <div class="mb-4">
+                            <h4 class="mb-2 text-sm font-medium text-gray-700">Size</h4>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach($sizes as $size)
+                                    <button type="button"
+                                            wire:click="selectSize('{{ $size }}')"
+                                            class="px-2 py-1 flex items-center justify-center border rounded-md text-sm {{ $selectedSize == $size ? 'bg-dark-brown text-white border-dark-brown' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}"
+                                            @if($selectedSize == $size) aria-pressed="true" @endif>
+                                        {{ $size }} gm
+                                    </button>
+                                @endforeach
+                            </div>
                         </div>
+                        @endif
+
+                        <!-- Wick Type Selection (dependent on size) -->
+                        @if(is_array($availableWickTypes) && count($availableWickTypes) > 0)
+                        <div class="mb-4">
+                            <h4 class="mb-2 text-sm font-medium text-gray-700">Wick Type</h4>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach($availableWickTypes as $wick)
+                                    <button type="button"
+                                            wire:click="selectWick('{{ $wick }}')"
+                                            class="px-2 py-1 text-sm border rounded-md {{ $selectedWickType == $wick ? 'bg-dark-brown text-white border-dark-brown' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}"
+                                            @if($selectedWickType == $wick) aria-pressed="true" @endif>
+                                        {{ ucfirst($wick) }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
                     </div>
                     @endif
 
-                    <!-- Wick Type Selection (dependent on size) -->
-                    @if(is_array($availableWickTypes) && count($availableWickTypes) > 0)
-                    <div class="mb-4">
-                        <h4 class="mb-2 text-sm font-medium text-gray-700">Wick Type</h4>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach($availableWickTypes as $wick)
+                    <!-- Quantity Selector -->
+                    @if(($selectedVariant && $selectedVariant->stock > 0) || ($product->variants->isEmpty() && $product->quantity > 0))
+                        <div class="mb-4">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">Quantity:</label>
+                            <div class="flex items-center overflow-hidden">
                                 <button type="button"
-                                        wire:click="selectWick('{{ $wick }}')"
-                                        class="px-2 py-1 text-sm border rounded-md {{ $selectedWickType == $wick ? 'bg-dark-brown text-white border-dark-brown' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}"
-                                        @if($selectedWickType == $wick) aria-pressed="true" @endif>
-                                    {{ ucfirst($wick) }}
+                                        wire:click="decrementQty"
+                                        wire:loading.attr="disabled"
+                                        wire:loading.class="opacity-50 cursor-not-allowed"
+                                        class="px-3 py-2 text-gray-600 hover:bg-white transition-colors {{ $quantity <= 1 ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                        {{ $quantity <= 1 ? 'disabled' : '' }}
+                                        title="Decrease quantity">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                    </svg>
                                 </button>
-                            @endforeach
+                                <input type="number"
+                                       wire:model.live="quantity"
+                                       min="1"
+                                       max="{{ $selectedVariant ? min($selectedVariant->stock, 10) : min($product->quantity, 10) }}"
+                                       class="w-16 text-center border-0 focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                       id="quantity-input">
+                                <button type="button"
+                                        wire:click="incrementQty"
+                                        wire:loading.attr="disabled"
+                                        wire:loading.class="opacity-50 cursor-not-allowed"
+                                        class="px-3 py-2 text-gray-600 hover:bg-white transition-colors {{ $quantity >= ($selectedVariant ? min($selectedVariant->stock, 10) : min($product->quantity, 10)) ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                        {{ $quantity >= ($selectedVariant ? min($selectedVariant->stock, 10) : min($product->quantity, 10)) ? 'disabled' : '' }}
+                                        title="Increase quantity">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Selected Variant Info -->
+                    @if($selectedVariant)
+                    <div class="p-3 mb-4 rounded-lg bg-gray-50">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-sm text-gray-600">Selected:</span>
+                                <span class="ml-2 font-medium">
+                                    {{-- Prefer showing size and wick_type when available --}}
+                                    @if($selectedVariant->size || $selectedVariant->wick_type)
+                                        @if($selectedVariant->size)
+                                            {{ $selectedVariant->size }} gm
+                                        @endif
+                                        @if($selectedVariant->size && $selectedVariant->wick_type)
+                                            &nbsp;-&nbsp;
+                                        @endif
+                                        @if($selectedVariant->wick_type)
+                                            {{ ucfirst($selectedVariant->wick_type) }} Wick
+                                        @endif
+                                    @else
+                                        SKU: {{ $selectedVariant->sku }}
+                                    @endif
+                                </span>
+                            </div>
+                            <span class="text-lg font-bold">{{ $currencySymbol }}{{ number_format($selectedVariant->converted_price ?? $selectedVariant->price, 2) }}</span>
                         </div>
                     </div>
                     @endif
+                @endif
+
+                <!--Description-->
+                <div class="py-6">
+                    <h3 class="mb-3 text-lg font-semibold">Description</h3>
+                    <div class="prose max-w-none">
+                        {!! $collection && !$product ? ($collection->description ?? '') : ($collection ? ($collection->description ?? '') : ($product ? $product->description : '')) !!}
+                    </div>
                 </div>
-                @endif
-
-                <!-- Quantity Selector -->
-                @if(($selectedVariant && $selectedVariant->stock > 0) || ($product->variants->isEmpty() && $product->quantity > 0))
-                    <div class="mb-4">
-                        <label class="block mb-2 text-sm font-medium text-gray-700">Quantity:</label>
-                        <div class="flex items-center overflow-hidden">
-                            <button type="button"
-                                    wire:click="decrementQty"
-                                    wire:loading.attr="disabled"
-                                    wire:loading.class="opacity-50 cursor-not-allowed"
-                                    class="px-3 py-2 text-gray-600 hover:bg-white transition-colors {{ $quantity <= 1 ? 'opacity-50 cursor-not-allowed' : '' }}"
-                                    {{ $quantity <= 1 ? 'disabled' : '' }}
-                                    title="Decrease quantity">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-                                </svg>
-                            </button>
-                            <input type="number"
-                                   wire:model.live="quantity"
-                                   min="1"
-                                   max="{{ $selectedVariant ? min($selectedVariant->stock, 10) : min($product->quantity, 10) }}"
-                                   class="w-16 text-center border-0 focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                   id="quantity-input">
-                            <button type="button"
-                                    wire:click="incrementQty"
-                                    wire:loading.attr="disabled"
-                                    wire:loading.class="opacity-50 cursor-not-allowed"
-                                    class="px-3 py-2 text-gray-600 hover:bg-white transition-colors {{ $quantity >= ($selectedVariant ? min($selectedVariant->stock, 10) : min($product->quantity, 10)) ? 'opacity-50 cursor-not-allowed' : '' }}"
-                                    {{ $quantity >= ($selectedVariant ? min($selectedVariant->stock, 10) : min($product->quantity, 10)) ? 'disabled' : '' }}
-                                    title="Increase quantity">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                @endif
-                     <!--Description-->
-                     <div class="py-6">
-                        <h3 class="mb-3 text-lg font-semibold">Description</h3>
-                        <div class="prose max-w-none">
-                            {!! $product->description !!}
-                        </div>
-                    </div>
-
-                <!-- Selected Variant Info -->
-                @if($selectedVariant)
-                <div class="p-3 mb-4 rounded-lg bg-gray-50">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <span class="text-sm text-gray-600">Selected:</span>
-                            <span class="ml-2 font-medium">
-                                {{-- Prefer showing size and wick_type when available --}}
-                                @if($selectedVariant->size || $selectedVariant->wick_type)
-                                    @if($selectedVariant->size)
-                                        {{ $selectedVariant->size }} gm
-                                    @endif
-                                    @if($selectedVariant->size && $selectedVariant->wick_type)
-                                        &nbsp;-&nbsp;
-                                    @endif
-                                    @if($selectedVariant->wick_type)
-                                        {{ ucfirst($selectedVariant->wick_type) }} Wick
-                                    @endif
-                                @else
-                                    SKU: {{ $selectedVariant->sku }}
-                                @endif
-                            </span>
-                        </div>
-                        <span class="text-lg font-bold">{{ $currencySymbol }}{{ number_format($selectedVariant->converted_price ?? $selectedVariant->price, 2) }}</span>
-                    </div>
-
-                </div>
-                @endif
 
 
                 <!-- Add to Cart Button -->
-                @if(($selectedVariant && $selectedVariant->stock > 0) || ($product->variants->isEmpty() && $product->quantity > 0))
-                    <button wire:click="addToCart"
-                            wire:loading.attr="disabled"
-                            wire:loading.class="opacity-75 cursor-not-allowed"
-                            wire:target="addToCart"
-                            class="w-full px-6 py-3 font-semibold text-white transition-colors rounded-lg bg-dark-brown hover:bg-yellow-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span wire:loading.remove wire:target="addToCart">Add to Cart</span>
-                        <span wire:loading wire:target="addToCart">
-                            <svg class="inline-block w-4 h-4 mr-2 -ml-1 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Adding...
-                        </span>
-                    </button>
-                @else
-                    <button disabled class="w-full px-6 py-3 font-semibold text-white bg-gray-400 rounded-lg cursor-not-allowed">
-                        Out of Stock
-                    </button>
+                @if($collection && !$product)
+                    {{-- Collection-only view (standalone bundle) --}}
+                    @php
+                        $collectionStock = (int) ($collection->stock ?? 0);
+                        $collectionInStock = $collectionStock > 0;
+                    @endphp
+                    @if($collectionInStock)
+                        <button wire:click="addCollectionToCart"
+                                wire:loading.attr="disabled"
+                                wire:loading.class="opacity-75 cursor-not-allowed"
+                                wire:target="addCollectionToCart"
+                                class="w-full px-6 py-3 font-semibold text-white transition-colors rounded-lg bg-dark-brown hover:bg-yellow-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span wire:loading.remove wire:target="addCollectionToCart">Add Collection to Cart</span>
+                            <span wire:loading wire:target="addCollectionToCart">
+                                <svg class="inline-block w-4 h-4 mr-2 -ml-1 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Adding...
+                            </span>
+                        </button>
+                    @else
+                        <button disabled class="w-full px-6 py-3 font-semibold text-white bg-gray-400 rounded-lg cursor-not-allowed">
+                            Out of Stock
+                        </button>
+                    @endif
+                @elseif($collection)
+                    {{-- Product with collection context - use addToCart which handles collections --}}
+                    @php
+                        $collectionStock = (int) ($collection->stock ?? 0);
+                        $collectionInStock = $collectionStock > 0;
+                    @endphp
+                    @if($collectionInStock)
+                        <button wire:click="addToCart"
+                                wire:loading.attr="disabled"
+                                wire:loading.class="opacity-75 cursor-not-allowed"
+                                wire:target="addToCart"
+                                class="w-full px-6 py-3 font-semibold text-white transition-colors rounded-lg bg-dark-brown hover:bg-yellow-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span wire:loading.remove wire:target="addToCart">Add Collection to Cart</span>
+                            <span wire:loading wire:target="addToCart">
+                                <svg class="inline-block w-4 h-4 mr-2 -ml-1 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Adding...
+                            </span>
+                        </button>
+                    @else
+                        <button disabled class="w-full px-6 py-3 font-semibold text-white bg-gray-400 rounded-lg cursor-not-allowed">
+                            Out of Stock
+                        </button>
+                    @endif
+                @elseif($product)
+                    @if(($selectedVariant && $selectedVariant->stock > 0) || ($product->variants->isEmpty() && $product->quantity > 0))
+                        <button wire:click="addToCart"
+                                wire:loading.attr="disabled"
+                                wire:loading.class="opacity-75 cursor-not-allowed"
+                                wire:target="addToCart"
+                                class="w-full px-6 py-3 font-semibold text-white transition-colors rounded-lg bg-dark-brown hover:bg-yellow-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span wire:loading.remove wire:target="addToCart">Add to Cart</span>
+                            <span wire:loading wire:target="addToCart">
+                                <svg class="inline-block w-4 h-4 mr-2 -ml-1 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Adding...
+                            </span>
+                        </button>
+                    @else
+                        <button disabled class="w-full px-6 py-3 font-semibold text-white bg-gray-400 rounded-lg cursor-not-allowed">
+                            Out of Stock
+                        </button>
+                    @endif
                 @endif
             </div>
         </div>
@@ -359,5 +461,91 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-
-
+<script>
+  @php
+    // Calculate the correct price for Facebook Pixel tracking
+    if ($collection && !$product) {
+        // Collection-only view
+        $fbPixelPrice = $collection->price ?? 0;
+        $fbPixelId = $collection->id;
+        $fbPixelName = $collection->name ?? '';
+    } elseif ($collection) {
+        // Product with collection context
+        $fbPixelPrice = $collection->price ?? 0;
+        $fbPixelId = $collection->id;
+        $fbPixelName = $collection->name ?? '';
+    } elseif ($product) {
+        // Regular product view - use variant price
+        $fbPixelVariant = $selectedVariant ?? $product->variants->first();
+        $fbPixelPrice = $fbPixelVariant ? ($fbPixelVariant->converted_price ?? $fbPixelVariant->price) : 0;
+        $fbPixelId = $product->id;
+        $fbPixelName = $product->name ?? '';
+    } else {
+        $fbPixelPrice = 0;
+        $fbPixelId = 0;
+        $fbPixelName = '';
+    }
+    
+    // Get currency
+    $fbPixelCurrency = $currencyCode ?? 'EGP';
+  @endphp
+  
+  // Track ViewContent event
+  fbq('track', 'ViewContent', {
+    content_ids: ['{{ $fbPixelId }}'],
+    content_type: 'product',
+    content_name: '{{ $fbPixelName }}',
+    value: {{ $fbPixelPrice }},
+    currency: '{{ $fbPixelCurrency }}'
+  });
+  
+  // Track AddToCart event when user adds product to cart
+  document.addEventListener('livewire:init', () => {
+    Livewire.on('showNotification', (data) => {
+      // Check if this is a successful add to cart notification
+      let message = '';
+      let type = '';
+      
+      if (Array.isArray(data)) {
+        message = data[0]?.message || data[0] || '';
+        type = data[0]?.type || 'success';
+      } else if (typeof data === 'object') {
+        message = data.message || '';
+        type = data.type || 'success';
+      } else {
+        message = data || '';
+        type = 'success';
+      }
+      
+      // Check if this is a successful cart addition
+      if (type === 'success' && message.toLowerCase().includes('added to cart')) {
+        // Get the current product/collection data
+        const productId = '{{ $fbPixelId }}';
+        const productName = '{{ $fbPixelName }}';
+        const productPrice = {{ $fbPixelPrice }};
+        const currency = '{{ $fbPixelCurrency }}';
+        
+        // Get quantity from the Livewire component
+        const quantity = @this.quantity || 1;
+        
+        // Track AddToCart event
+        fbq('track', 'AddToCart', {
+          content_ids: [productId],
+          content_type: 'product',
+          content_name: productName,
+          value: productPrice * quantity,
+          currency: currency,
+          num_items: quantity
+        });
+        
+        console.log('Facebook Pixel: AddToCart event tracked', {
+          product_id: productId,
+          product_name: productName,
+          value: productPrice * quantity,
+          quantity: quantity
+        });
+      }
+    });
+  });
+</script>
+<!--facebook pixel-->

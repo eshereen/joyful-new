@@ -65,7 +65,7 @@
         </div>
 
         <div class="flex items-center justify-end">
-            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors">
+            <button type="submit" class="w-full bg-dark-brown hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors">
                 {{ __('Log in') }}
             </button>
         </div>

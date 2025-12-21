@@ -23,20 +23,45 @@ class OrderObserver
         try {
             Log::info('Attempting to send order confirmation email', [
                 'order_id' => $order->id,
-                'email' => $order->email
+                'order_number' => $order->order_number,
+                'customer_email' => $order->email,
+                'customer_name' => $order->first_name . ' ' . $order->last_name,
+                'mail_driver' => config('mail.default'),
+                'mail_host' => config('mail.mailers.smtp.host'),
+                'mail_from' => config('mail.from.address'),
             ]);
 
-            Mail::to($order->email)->later(now()->addSeconds(5), new OrderCreated($order));
-
-            Log::info('Order confirmation email queued successfully', [
+            // Send to customer
+            $customerMailSent = Mail::to($order->email)->send(new OrderCreated($order));
+            
+            Log::info('Customer email sent', [
                 'order_id' => $order->id,
-                'email' => $order->email
+                'to' => $order->email,
+                'result' => $customerMailSent ? 'success' : 'unknown'
+            ]);
+            
+            // Also send copy to admin
+            $adminMailSent = Mail::to('info@joyfulegy.com')->send(new OrderCreated($order));
+            
+            Log::info('Admin email sent', [
+                'order_id' => $order->id,
+                'to' => 'info@joyfulegy.com',
+                'result' => $adminMailSent ? 'success' : 'unknown'
+            ]);
+
+            Log::info('Order confirmation emails completed', [
+                'order_id' => $order->id,
+                'customer_email' => $order->email,
+                'admin_email' => 'info@joyfulegy.com'
             ]);
         } catch (Exception $e) {
             Log::error('Email sending failed but continuing with order', [
                 'order_id' => $order->id,
                 'email' => $order->email,
                 'error' => $e->getMessage(),
+                'error_class' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
         }
@@ -82,17 +107,24 @@ class OrderObserver
                     'email' => $order->email
                 ]);
 
-                Mail::to($order->email)->queue(new OrderShipped($order));
+                // Send to customer
+                Mail::to($order->email)->send(new OrderShipped($order));
+                
+                // Also send copy to admin
+                Mail::to('info@joyfulegy.com')->send(new OrderShipped($order));
 
-                Log::info('Order shipped email queued successfully', [
+                Log::info('Order shipped email sent successfully', [
                     'order_id' => $order->id,
-                    'email' => $order->email
+                    'email' => $order->email,
+                    'admin_copy' => 'info@joyfulegy.com'
                 ]);
             } catch (Exception $e) {
                 Log::error('Shipped email sending failed', [
                     'order_id' => $order->id,
                     'email' => $order->email,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
                 ]);
             }
         }

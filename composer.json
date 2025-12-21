@@ -6,7 +6,7 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.3",
+        "php": "^8.2",
         "ashallendesign/laravel-exchange-rates": "^7.9",
         "bezhansalleh/filament-shield": "^4.0",
         "darryldecode/cart": "^4.2",
@@ -18,7 +18,6 @@
         "laravel/tinker": "^2.10.1",
         "livewire/flux": "^2.1.1",
         "livewire/volt": "^1.7.0",
-        "mgcodeur/laravel-currency-converter": "^1.0",
         "phiki/phiki": "^2.0",
         "spatie/laravel-medialibrary": "^11.0",
         "srmklive/paypal": "~3.0",

@@ -139,10 +139,11 @@
         showFilamentToast(orderData) {
             // Create a custom toast notification
             const toast = document.createElement('div');
-            toast.className = 'fixed top-4 right-4 z-[9999] bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full';
+            toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full';
+            toast.style.zIndex = '3000';
             toast.innerHTML = `
                 <div class='flex items-center space-x-3'>
-                    <div class='flex-shrink-0'>
+                    <div class='shrink-0'>
                         <svg class='h-5 w-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
                             <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
                         </svg>

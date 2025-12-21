@@ -8,9 +8,9 @@
             <div class="flex w-full max-w-sm flex-col gap-2">
                 <div class="flex items-center flex-1 justify-center">
 
-                    <img src="/imgs/Joyful_logo_white.png" alt="logo" class="w-20 block group-hover:hidden">
+                    <img src="/imgs/logo.png" alt="logo" class="w-20 block group-hover:hidden">
                              <!-- Black logo (only visible on hover) -->
-                             <img src="/imgs/Joyful_logo_black.png" alt="logo" class="w-20 hidden group-hover:block">
+                             <img src="/imgs/logo.png" alt="logo" class="w-20 hidden group-hover:block">
                              </div>
                 <div class="flex flex-col gap-6">
                     {{ $slot }}

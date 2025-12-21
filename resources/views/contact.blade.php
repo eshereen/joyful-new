@@ -116,6 +116,10 @@
 
                 <form method="POST" action="{{ route('contact.store') }}" class="bg-white p-8 rounded-lg shadow-md animate-on-scroll">
                     @csrf
+
+                    <!-- Honeypot field to prevent spam (hidden from users) -->
+                    <input type="text" name="website" value="" style="position: absolute; left: -5000px;" tabindex="-1" autocomplete="off">
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>

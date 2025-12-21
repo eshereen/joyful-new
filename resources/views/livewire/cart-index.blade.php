@@ -30,10 +30,15 @@
                                     <td class="py-6 px-4">
                                         <div class="flex items-center space-x-4">
                                             @if(isset($item['attributes']['image']) && $item['attributes']['image'])
-                                                <img src="{{ $item['attributes']['image'] }}" alt="{{ $item['name'] }}" class="w-16 h-16 object-cover rounded-lg flex-shrink-0">
+                                                <img src="{{ $item['attributes']['image'] }}" alt="{{ $item['name'] }}" class="w-16 h-16 object-cover rounded-lg shrink-0">
                                             @endif
                                             <div class="min-w-0 flex-1">
-                                                <h3 class="font-medium text-gray-900 truncate">{{ $item['name'] }}</h3>
+                                                <div class="flex items-center gap-2">
+                                                    <h3 class="font-medium text-gray-900 truncate">{{ $item['name'] }}</h3>
+                                                    @if(($item['attributes']['item_type'] ?? null) === 'collection')
+                                                        <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-yellow-100 text-dark-brown">Collection</span>
+                                                    @endif
+                                                </div>
                                                 @if(isset($item['attributes']['size']) || isset($item['attributes']['wick_type']))
                                                     <div class="text-sm text-gray-500 mt-1 flex flex-wrap gap-1">
                                                         @if(isset($item['attributes']['size']))
@@ -152,6 +157,121 @@
     </div>
 
 </div>
+
+@once
+    @push('scripts')
+        <script>
+            // Meta/Facebook Pixel: Track AddToCart when user increases quantity from cart (+)
+            (function registerFbAddToCartListener() {
+                const attach = () => {
+                    if (!window.Livewire || typeof window.Livewire.on !== 'function') return;
+
+                    window.Livewire.on('fbAddToCart', (data) => {
+                        // Normalize Livewire payload (sometimes arrives as [payload])
+                        const payload = Array.isArray(data) ? (data[0] || {}) : (data || {});
+
+                        if (typeof window.fbq !== 'function') return;
+
+                        try {
+                            window.fbq('track', 'AddToCart', {
+                                content_ids: payload.content_ids || [],
+                                content_type: payload.content_type || 'product',
+                                content_name: payload.content_name || '',
+                                value: Number(payload.value || 0),
+                                currency: payload.currency || 'USD',
+                                contents: payload.contents || [],
+                                num_items: Number(payload.quantity_added || payload.num_items || 1),
+                            });
+                        } catch (e) {
+                            // fail silently to avoid breaking cart UX
+                            console.warn('Meta Pixel AddToCart tracking failed', e);
+                        }
+                    });
+                };
+
+                // If Livewire already booted (common because @stack('scripts') is after @livewireScripts),
+                // attach immediately; otherwise attach on livewire:init.
+                if (window.Livewire) {
+                    attach();
+                } else {
+                    document.addEventListener('livewire:init', attach, { once: true });
+                }
+            })();
+        </script>
+
+        <script>
+            // Meta/Facebook Pixel: Track full cart contents (custom event "Cart")
+            (function trackCartEvent() {
+                const currency = @json($currencyCode ?? 'USD');
+                const initialCartItems = @json($cartItems ?? []);
+
+                const buildCartPayload = (items) => {
+                    const safeItems = Array.isArray(items) ? items : [];
+
+                    const contents = safeItems.map((item) => {
+                        const id = String(item.id ?? item.rowId ?? '');
+                        const quantity = Number(item.quantity ?? 0) || 0;
+                        const itemPrice = Number(item.converted_price ?? item.price ?? 0) || 0;
+
+                        return { id, quantity, item_price: itemPrice };
+                    }).filter((c) => c.id && c.quantity > 0);
+
+                    const content_ids = contents.map((c) => c.id);
+                    const value = contents.reduce((sum, c) => sum + (c.item_price * c.quantity), 0);
+                    const num_items = contents.reduce((sum, c) => sum + c.quantity, 0);
+
+                    return {
+                        content_ids,
+                        contents,
+                        content_type: 'product',
+                        currency,
+                        value,
+                        num_items,
+                    };
+                };
+
+                const send = (items) => {
+                    if (typeof window.fbq !== 'function') return;
+                    const payload = buildCartPayload(items);
+                    if (!payload.contents.length) return;
+
+                    try {
+                        // Use a custom event name so you can create/monitor it in Events Manager
+                        window.fbq('trackCustom', 'Cart', payload);
+                    } catch (e) {
+                        console.warn('Meta Pixel Cart tracking failed', e);
+                    }
+                };
+
+                // Fire once on initial page render
+                send(initialCartItems);
+
+                // Re-fire when Livewire cart changes (throttled to avoid spamming)
+                let lastSentAt = 0;
+                const throttleMs = 1200;
+
+                const attach = () => {
+                    if (!window.Livewire || typeof window.Livewire.on !== 'function') return;
+
+                    window.Livewire.on('cartUpdated', () => {
+                        const now = Date.now();
+                        if (now - lastSentAt < throttleMs) return;
+                        lastSentAt = now;
+
+                        // Best-effort: reuse the latest items rendered on page (will be updated by Livewire)
+                        send(@json($cartItems ?? []));
+                    });
+                };
+
+                if (window.Livewire) {
+                    attach();
+                } else {
+                    document.addEventListener('livewire:init', attach, { once: true });
+                }
+            })();
+        </script>
+    @endpush
+@endonce
 
 
 

@@ -11,7 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-class OrderShipped extends Mailable implements ShouldQueue
+class OrderShipped extends Mailable
 {
     use Queueable, SerializesModels;
 

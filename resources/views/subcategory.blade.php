@@ -24,6 +24,7 @@
   </section>
 
   <!-- Content -->
+    @if($category)
   <div class="max-w-7xl mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 my-8">
     <!-- Sidebar Filters -->
     <aside class="space-y-6">
@@ -35,5 +36,10 @@
       @livewire('category-products', ['categorySlug' => $categorySlug, 'subcategorySlug' => $subcategorySlug])
     </main>
   </div>
-
+   @else
+    <!-- Show all categories in grid -->
+    <div class="max-w-7xl mx-auto px-4 py-10 my-8">
+      @livewire('categories-grid')
+    </div>
+  @endif
 @endsection

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Services\CartService;
@@ -14,6 +15,7 @@ use App\Http\Requests\CartUpdateRequest;
 
 class CartController extends Controller
 {
+    /** @var \App\Services\CartService */
     protected $cartService;
     protected $currencyService;
 
@@ -48,7 +50,7 @@ class CartController extends Controller
         $this->cartService->addItem(
             $product,
             $request->quantity,
-          
+
         );
 
         return response()->json([
@@ -146,4 +148,93 @@ public function addWithVariant(Request $request, Product $product)
         'message' => 'Product added to cart'
     ]);
 }
+
+    /**
+     * Add collection to cart (adds all products in the collection)
+     */
+    public function addCollection(Request $request, Collection $collection)
+    {
+        $request->validate([
+            'quantity' => 'sometimes|integer|min:1|max:10'
+        ]);
+
+        $quantity = $request->input('quantity', 1);
+
+        try {
+            if (method_exists($this->cartService, 'addCollection')) {
+                $result = call_user_func([$this->cartService, 'addCollection'], $collection, $quantity);
+            } else {
+                $result = $this->addCollectionManually($collection, $quantity);
+            }
+
+            $message = "Collection '{$collection->name}' added to cart.";
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'cartCount' => $this->cartService->getCount(),
+                    'message' => $message,
+                    'cartItem' => $result['item'] ?? null,
+                ]);
+            }
+
+            return redirect()->back()->with('success', $message);
+        } catch (\Exception $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 400);
+            }
+
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Fallback collection handling when the cart service
+     * does not provide a dedicated addCollection method.
+     */
+    protected function addCollectionManually(Collection $collection, int $quantity = 1): array
+    {
+        $available = (int) ($collection->stock ?? 0);
+        if ($available <= 0) {
+            throw new \RuntimeException("Collection '{$collection->name}' is out of stock.");
+        }
+
+        if ($quantity > $available) {
+            throw new \RuntimeException("Only {$available} set(s) available for '{$collection->name}'. Please reduce the quantity.");
+        }
+
+        $products = $collection->products()->where('active', true)->get();
+
+        if ($products->isEmpty()) {
+            throw new \RuntimeException('Collection has no active products');
+        }
+
+        $added = 0;
+        foreach ($products as $product) {
+            if ($product->variants()->exists()) {
+                $variant = $product->variants()->where('stock', '>', 0)->first();
+                if ($variant) {
+                    $this->cartService->addItemWithVariant($product, $variant, $quantity);
+                    $added++;
+                }
+            } else {
+                $this->cartService->addItem($product, $quantity);
+                $added++;
+            }
+        }
+
+        return [
+            'success' => true,
+            'item' => [
+                'type' => 'collection_fallback',
+                'name' => $collection->name,
+                'quantity' => $quantity,
+                'price' => (float) ($collection->price ?? 0),
+                'products_added' => $added,
+            ],
+        ];
+    }
 }

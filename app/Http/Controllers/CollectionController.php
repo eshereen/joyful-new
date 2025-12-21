@@ -15,6 +15,9 @@ class CollectionController extends Controller
         $title = 'Joyful|Collections';
         $collection = Collection::where('slug', $slug)
             ->where('active', true)
+            ->with(['media' => function ($q) {
+                $q->where('collection_name', 'main_image');
+            }])
             ->with(['products.category', 'products.subcategory', 'products.media', 'products.variants'])
             ->firstOrFail();
 
@@ -32,6 +35,9 @@ class CollectionController extends Controller
     {
         $title = 'Joyful|Collections';
         $collections = Collection::where('active', true)
+            ->with(['media' => function ($q) {
+                $q->where('collection_name', 'main_image');
+            }])
             ->withCount('products')
             ->get();
 
@@ -45,6 +51,9 @@ class CollectionController extends Controller
     {
         $collection = Collection::where('slug', $slug)
             ->where('active', true)
+            ->with(['media' => function ($q) {
+                $q->where('collection_name', 'main_image');
+            }])
             ->with(['products.category', 'products.subcategory', 'products.media', 'products.variants'])
             ->first();
 

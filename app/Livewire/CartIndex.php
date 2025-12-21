@@ -204,12 +204,13 @@ class CartIndex extends Component
         $this->loadCart();
     }
 
-    public function updateQuantity($rowId, $newQuantity)
+    public function updateQuantity($rowId, $newQuantity, $trackAddToCart = false)
     {
         Log::info('updateQuantity called', [
             'rowId' => $rowId,
             'newQuantity' => $newQuantity,
-            'current_cart_items_count' => count($this->cartItems)
+            'current_cart_items_count' => count($this->cartItems),
+            'trackAddToCart' => $trackAddToCart,
         ]);
 
         if ($newQuantity < 1) {
@@ -233,10 +234,12 @@ class CartIndex extends Component
                 return;
             }
 
+            $oldQuantity = (int) ($itemToUpdate['quantity'] ?? 0);
+
             Log::info('Item found for quantity update', [
                 'rowId' => $rowId,
                 'item_name' => $itemToUpdate['name'],
-                'old_quantity' => $itemToUpdate['quantity'],
+                'old_quantity' => $oldQuantity,
                 'new_quantity' => $newQuantity
             ]);
 
@@ -278,6 +281,29 @@ class CartIndex extends Component
 
                 // Dispatch cart updated event
                 $this->dispatch('cartUpdated');
+
+                // Track "AddToCart" when quantity is increased from the cart page (+ button)
+                if ($trackAddToCart && $newQuantity > $oldQuantity) {
+                    $quantityAdded = (int) $newQuantity - (int) $oldQuantity;
+                    $itemPrice = (float) ($itemToUpdate['converted_price'] ?? $itemToUpdate['price'] ?? 0);
+                    $itemId = (string) ($itemToUpdate['id'] ?? $itemToUpdate['rowId'] ?? '');
+                    $itemName = (string) ($itemToUpdate['name'] ?? '');
+                    $itemType = (string) (($itemToUpdate['attributes']['item_type'] ?? null) === 'collection' ? 'collection' : 'product');
+
+                    $this->dispatch('fbAddToCart', [
+                        'content_ids' => [$itemId],
+                        'content_type' => $itemType,
+                        'content_name' => $itemName,
+                        'currency' => $this->currencyCode ?? 'USD',
+                        'value' => $itemPrice * $quantityAdded,
+                        'quantity_added' => $quantityAdded,
+                        'contents' => [[
+                            'id' => $itemId,
+                            'quantity' => $quantityAdded,
+                            'item_price' => $itemPrice,
+                        ]],
+                    ]);
+                }
             } else {
                 Log::error('CartService updateQuantity returned false', ['rowId' => $rowId]);
                 $this->dispatch('showNotification', [
@@ -357,7 +383,8 @@ class CartIndex extends Component
             'new_quantity' => $newQuantity
         ]);
 
-        $this->updateQuantity($rowId, $newQuantity);
+        // Pass $trackAddToCart=true so the frontend can fire Meta Pixel "AddToCart"
+        $this->updateQuantity($rowId, $newQuantity, true);
     }
 
     public function removeItem($rowId)

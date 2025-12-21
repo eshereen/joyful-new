@@ -24,8 +24,6 @@ return Application::configure(basePath: dirname(__DIR__))
         // EMERGENCY: Temporarily disabled custom CSRF middleware - using standard with bypasses
         // $middleware->replace(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class, \App\Http\Middleware\LivewireCSRFMiddleware::class);
 
-        // Append our currency middleware to the web group in a supported way
-        $middleware->appendToGroup('web', \App\Http\Middleware\CurrencyMiddleware::class);
         $middleware->appendToGroup('web', \App\Http\Middleware\CacheControlStatic::class);
 
     })

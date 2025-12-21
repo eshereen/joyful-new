@@ -56,6 +56,40 @@
     </div>
 </div>
 @endsection
+@push('scripts')
+<script>
+  @php
+    // Calculate the correct values for Facebook Pixel tracking
+    $fbPixelNumItems = 0;
+    $fbPixelValue = 0;
+    $fbPixelContentIds = [];
+    
+    if (isset($cartItems) && $cartItems->isNotEmpty()) {
+        // Count total number of items (sum of quantities)
+        $fbPixelNumItems = $cartItems->sum('quantity');
+        
+        // Get product IDs for content tracking
+        $fbPixelContentIds = $cartItems->pluck('id')->filter()->toArray();
+    }
+    
+    // Use the total value passed from controller
+    if (isset($total)) {
+        $fbPixelValue = $total;
+    }
+    
+    // Get currency code, fallback to EGP
+    $fbPixelCurrency = $currencyCode ?? 'EGP';
+  @endphp
+  
+  fbq('track', 'InitiateCheckout', {
+    content_ids: @json($fbPixelContentIds),
+    content_type: 'product',
+    num_items: {{ $fbPixelNumItems }},
+    value: {{ $fbPixelValue }},
+    currency: '{{ $fbPixelCurrency }}'
+  });
+</script>
+@endpush
 
 
 

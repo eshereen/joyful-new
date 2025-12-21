@@ -14,7 +14,8 @@ use App\Services\CountryCurrencyService;
 
 class ProductShow extends Component
 {
-    public Product $product;
+    public ?Product $product = null;
+    public $collection = null;
     public $quantity = 1;
     public $selectedVariantId = null;
     public $selectedVariant = null;
@@ -31,18 +32,48 @@ class ProductShow extends Component
         'selectedVariantId' => 'nullable|exists:variants,id'
     ];
 
-    public function mount(Product $product)
+    public function mount($product = null, $collection = null)
     {
-        $this->product = $product->load(['variants', 'category', 'media']);
+        // Handle collection-only view (collections are standalone bundles)
+        if ($collection && !$product) {
+            $this->collection = \App\Models\Collection::with('media')->find($collection);
+            if (!$this->collection) {
+                abort(404, 'Collection not found');
+            }
+            $this->product = null;
+            $this->quantity = 1;
+            $this->loadCurrencyInfo();
+            return;
+        }
 
-        // Check if product is in user's wishlist
-        $this->checkWishlistStatus();
+        // Handle product view (with optional collection context)
+        if ($product instanceof Product) {
+            $this->product = $product->load(['variants', 'category', 'media']);
+        } elseif ($product) {
+            // If product is passed as ID or slug, load it
+            $this->product = Product::with(['variants', 'category', 'media'])->where('slug', $product)->orWhere('id', $product)->first();
+            if (!$this->product) {
+                abort(404, 'Product not found');
+            }
+        } else {
+            abort(404, 'Product not found');
+        }
+
+        // Load collection if provided
+        if ($collection) {
+            $this->collection = \App\Models\Collection::with('media')->find($collection);
+        }
+
+        // Check if product is in user's wishlist (only for products, not collections)
+        if ($this->product) {
+            $this->checkWishlistStatus();
+        }
 
         // Load currency information
         $this->loadCurrencyInfo();
 
         // Set default selected variant if product has variants
-        if ($this->product->variants->isNotEmpty()) {
+        if ($this->product && $this->product->variants->isNotEmpty()) {
             $this->selectedVariant = $this->product->variants->first();
             $this->selectedVariantId = $this->selectedVariant->id;
             // Initialize size/wick selections from the default selected variant
@@ -53,7 +84,7 @@ class ProductShow extends Component
             // Always start with quantity 1, regardless of stock
             $this->quantity = 1;
         } else {
-            // For simple products without variants, start with quantity 1
+            // For simple products without variants or collections, start with quantity 1
             $this->quantity = 1;
         }
     }
@@ -70,6 +101,49 @@ class ProductShow extends Component
         // Ensure selectedWickType is valid
         if ($this->selectedWickType && !in_array($this->selectedWickType, $this->availableWickTypes)) {
             $this->selectedWickType = $this->availableWickTypes[0] ?? null;
+        }
+    }
+
+    public function addCollectionToCart()
+    {
+        if (!$this->collection) {
+            $this->dispatch('showNotification', [
+                'message' => 'Collection not found.',
+                'type' => 'error'
+            ]);
+            return;
+        }
+
+        try {
+            $cartService = app(\App\Services\CartService::class);
+
+            if (($this->collection->stock ?? 0) <= 0) {
+                $this->dispatch('showNotification', [
+                    'message' => "Collection '{$this->collection->name}' is out of stock.",
+                    'type' => 'error',
+                ]);
+                return;
+            }
+
+            $cartService->addCollection($this->collection);
+
+            $this->dispatch('cartUpdated');
+            $this->dispatch('showNotification', [
+                'message' => "Collection '{$this->collection->name}' added to cart.",
+                'type' => 'success',
+            ]);
+
+            return redirect()->route('cart.index');
+        } catch (Exception $e) {
+            Log::error('Error adding collection to cart from product show', [
+                'collection_id' => $this->collection->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+
+            $this->dispatch('showNotification', [
+                'message' => $e->getMessage() ?: 'Could not add collection to cart.',
+                'type' => 'error',
+            ]);
         }
     }
 
@@ -310,6 +384,19 @@ class ProductShow extends Component
 
     public function addToCart()
     {
+        // Handle collection-only view (collections are standalone bundles)
+        if ($this->collection && !$this->product) {
+            return $this->addCollectionToCart();
+        }
+
+        if (!$this->product) {
+            $this->dispatch('showNotification', [
+                'message' => 'Product not found.',
+                'type' => 'error'
+            ]);
+            return;
+        }
+
         Log::info('addToCart called', [
             'product_id' => $this->product->id,
             'product_name' => $this->product->name,
@@ -467,6 +554,13 @@ class ProductShow extends Component
 
     public function render()
     {
+        // For collection-only views, don't show related products
+        if (!$this->product) {
+            return view('livewire.product-show', [
+                'relatedProducts' => collect([])
+            ]);
+        }
+
         $relatedProducts = Product::where('category_id', $this->product->category_id)
             ->where('id', '!=', $this->product->id)
             ->where('active', true)

@@ -19,8 +19,9 @@ class CustomersTable
                 TextColumn::make('user_id')
                     ->numeric()
                     ->sortable(),
-                TextColumn::make('country_id')
-                    ->numeric()
+                TextColumn::make('country.name')
+                    ->searchable()
+                    ->label('Country')
                     ->sortable(),
                 TextColumn::make('email')
                     ->label('Email address')
@@ -31,8 +32,8 @@ class CustomersTable
                     ->searchable(),
                 TextColumn::make('phone_number')
                     ->searchable(),
-                TextColumn::make('billing_country_id')
-                    ->numeric()
+                TextColumn::make('billing_country.name')
+                    ->label('Billing Country')
                     ->sortable(),
                 TextColumn::make('billing_state')
                     ->searchable(),
@@ -40,8 +41,8 @@ class CustomersTable
                     ->searchable(),
                 TextColumn::make('billing_building_number')
                     ->searchable(),
-                TextColumn::make('shipping_country_id')
-                    ->numeric()
+                TextColumn::make('shipping_country.name')
+                    ->label('Shipping Country')
                     ->sortable(),
                 TextColumn::make('shipping_state')
                     ->searchable(),

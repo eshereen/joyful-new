@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Models\Collection;
 use App\Models\OrderItem;
 use App\Models\Variant;
 use Illuminate\Support\Facades\Log;
@@ -31,6 +32,18 @@ class OrderItemObserver
                 ]);
             }
         }
+
+        if ($orderItem->collection_id) {
+            $collection = Collection::find($orderItem->collection_id);
+            if ($collection) {
+                $collection->decrement('stock', $orderItem->quantity);
+                Log::info('Stock decreased for collection', [
+                    'collection_id' => $collection->id,
+                    'decreased_by' => $orderItem->quantity,
+                    'new_stock' => $collection->fresh()->stock
+                ]);
+            }
+        }
     }
 
     /**
@@ -54,6 +67,18 @@ class OrderItemObserver
                     'variant_id' => $variant->id,
                     'restored_by' => $orderItem->quantity,
                     'new_stock' => $variant->fresh()->stock
+                ]);
+            }
+        }
+
+        if ($orderItem->collection_id) {
+            $collection = Collection::find($orderItem->collection_id);
+            if ($collection) {
+                $collection->increment('stock', $orderItem->quantity);
+                Log::info('Stock restored for collection', [
+                    'collection_id' => $collection->id,
+                    'restored_by' => $orderItem->quantity,
+                    'new_stock' => $collection->fresh()->stock
                 ]);
             }
         }

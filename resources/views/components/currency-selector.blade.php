@@ -1,1 +1,0 @@
-@livewire('currency-selector')

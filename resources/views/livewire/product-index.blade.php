@@ -1,4 +1,4 @@
-<div x-data="productSlider()" x-init="init()" class="relative overflow-hidden select-none" style="touch-action: pan-y;">
+<div x-data="productSlider()" x-init="init()" class="relative overflow-hidden select-none my-20" style="touch-action: pan-y;">
     <!-- Desktop Navigation Buttons -->
     <div class="hidden md:block">
       <button @click="stopLoop(); prev(() => startLoop());"
@@ -18,7 +18,7 @@
         </div>
 
     <!-- Slider Container -->
-    <div class="overflow-hidden select-none" style="-webkit-user-select: none; user-select: none;">
+    <div class="overflow-hidden select-none my-10" style="-webkit-user-select: none; user-select: none;">
       <div class="flex gap-6 slider-track will-change-transform"
            x-ref="sliderTrack"
            @pointerdown="onDown($event)"

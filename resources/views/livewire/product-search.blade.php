@@ -2,9 +2,7 @@
     <!-- Search Button (Default State) -->
     <button @click="showSearch = !showSearch"
             class="relative font-xs hover:text-red-600 transition-colors"
-            :class="isHome && !scrolled ? 'text-white' : 'text-gray-950'"
-            x-data="{ isHome: {{ request()->routeIs('home') ? 'true' : 'false' }}, scrolled: false }"
-            x-init="window.addEventListener('scroll', () => { scrolled = window.scrollY > 10 })">
+            :class="isHome && !scrolled ? 'text-white' : 'text-gray-950'">
         <i class="fas fa-search text-xl"></i>
     </button>
 

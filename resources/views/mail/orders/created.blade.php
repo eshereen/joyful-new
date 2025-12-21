@@ -10,11 +10,11 @@
     Order ID: {{ $order->id }}
     Order Date: {{ optional($order->created_at)->format('d-m-Y') }}
     Order Status: {{ $order->status->value }}
-    Order Total: {{ $order->total_amount }}
+    Order Total: {{ $order->total_amount }} EGP
 
     @if($order->relationLoaded('items') || $order->items()->exists())
         @foreach ($order->items as $item)
-            {{ optional($item->product)->name ?? 'Item' }} - {{ $item->quantity }} - {{ $item->price }}
+            {{ optional($item->product)->name ?? 'Item' }} - {{ $item->quantity }} - {{ $item->price }} EGP
         @endforeach
     @endif
 

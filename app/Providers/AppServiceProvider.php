@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Contracts\CartServiceContract;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Category;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use App\Listeners\HandlePaymentStatusChange;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use App\Services\CartService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -36,7 +38,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        //
+        $this->app->singleton(CartServiceContract::class, CartService::class);
     }
 
     /**
@@ -66,9 +68,12 @@ class AppServiceProvider extends ServiceProvider
                     });
             });
 
-            // Get collections for dropdown
+            // Get collections for dropdown - eager load media
             $collections = cache()->remember('header_collections', 1800, function () {
                 return \App\Models\Collection::where('collections.active', true)
+                    ->with(['media' => function ($q) {
+                        $q->where('collection_name', 'main_image');
+                    }])
                     ->withCount(['products' => function ($query) {
                         $query->where('products.active', true);
                     }])

@@ -64,11 +64,36 @@
     <!-- Icons -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <!--Favicon-->
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />    
 
     <!-- Google Fonts - Single import -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1411171527286778');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1411171527286778&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+
+
 
      <script>
         tailwind.config = {
@@ -108,20 +133,68 @@ p,a,span,li,ul,ol,button{
 <body class="bg-white text-gray-950 antialiased overflow-x-hidden">
         <!-- Loader Overlay -->
 <div
+id="page-loader"
 x-data="{ show: true }"
-x-init="window.addEventListener('load', () => { show = false })"
+x-init="
+    // Hide loader when DOM is ready (much faster than waiting for all resources)
+    const hideLoader = () => {
+        setTimeout(() => { show = false; }, 200);
+    };
+
+    // Try multiple events to ensure it hides quickly
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        hideLoader();
+    } else {
+        document.addEventListener('DOMContentLoaded', hideLoader);
+        window.addEventListener('load', hideLoader);
+    }
+
+    // Fallback timeout - hide after max 1.5 seconds regardless
+    setTimeout(() => { show = false; }, 1500);
+"
 x-show="show"
-x-transition:leave="transition-opacity duration-700"
+x-transition:leave="transition-opacity duration-400"
 x-transition:leave-start="opacity-100"
 x-transition:leave-end="opacity-0"
 class="fixed inset-0 z-50 flex items-center justify-center bg-white"
-style="background: rgba(255,255,255,0.95);"
+style="background: rgba(255,255,255,0.95); pointer-events: none;"
 >
 <img src="/imgs/logo.png" alt="Loading..." class="w-64 animate-pulse">
 </div>
+
+<script>
+// Vanilla JS fallback to hide loader quickly (works even if Alpine.js hasn't loaded)
+(function() {
+    const loader = document.getElementById('page-loader');
+    if (!loader) return;
+
+    const hideLoader = function() {
+        if (loader) {
+            loader.style.opacity = '0';
+            loader.style.transition = 'opacity 0.4s ease-out';
+            setTimeout(function() {
+                loader.style.display = 'none';
+            }, 400);
+        }
+    };
+
+    // Hide immediately if DOM is already ready
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        setTimeout(hideLoader, 200);
+    } else {
+        // Hide on DOMContentLoaded (faster than window.load)
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(hideLoader, 200);
+        });
+    }
+
+    // Fallback: hide after max 1.5 seconds
+    setTimeout(hideLoader, 1500);
+})();
+</script>
     @include('layouts.navbar')
     <!-- Notification System -->
-    <div id="notification-container" class="fixed top-4 right-4 z-[9999] p-4 text-white" style="pointer-events: none;"></div>
+    <div id="notification-container" class="fixed top-4 right-4 p-4 text-white" style="pointer-events: none; z-index: 3000;"></div>
 
     @yield('content')
 
@@ -268,15 +341,7 @@ style="background: rgba(255,255,255,0.95);"
         let sessionRefreshTimer;
 
         function refreshSession() {
-            fetch('/currency/current', {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            }).catch(() => {
-                // Silently fail - this is just to keep session alive
-            });
+            // Session refresh removed - no currency conversion needed
         }
 
         function startSessionRefresh() {
@@ -352,22 +417,7 @@ style="background: rgba(255,255,255,0.95);"
                 });
             });
 
-            // Global currency change listener
-            window.addEventListener('currency-changed', function(event) {
-                console.log('🌍 Global currency change detected:', event.detail);
-                if (window.Livewire) {
-                    // Dispatch to all Livewire components
-                    window.Livewire.dispatch('currency-changed', event.detail);
-                    window.Livewire.dispatch('global-currency-changed', event.detail);
-
-                    // Force refresh all components
-                    window.Livewire.all().forEach(component => {
-                        if (component.$refresh) {
-                            component.$refresh();
-                        }
-                    });
-                }
-            });
+            // Currency change listener removed - using local currency only
 
             // Additional Livewire debugging for live server
             Livewire.hook('component.initialized', (component) => {
@@ -394,59 +444,27 @@ style="background: rgba(255,255,255,0.95);"
                 showNotification(message, type);
             });
 
-            // Handle stock error notifications with action buttons
+            // Handle stock error notifications with a simple toast
             Livewire.on('showStockError', (data) => {
                 const container = document.getElementById('notification-container');
                 if (!container) return;
 
                 const notification = document.createElement('div');
-                notification.className = 'notification mb-4 p-4 rounded-lg shadow-lg transform translate-x-full transition-all duration-300 bg-red-500';
-
-                notification.style.zIndex = '9999';
-                notification.style.minWidth = '400px';
+                notification.className = 'notification mb-4 p-4 rounded-lg shadow-lg transform translate-x-full transition-all duration-300 bg-red-500 text-white';
+                notification.style.zIndex = '3001';
+                notification.style.minWidth = '320px';
                 notification.style.border = '3px solid #DC2626';
-                notification.style.backgroundColor = '#EF4444';
-                notification.style.padding = '20px';
-                notification.style.marginBottom = '16px';
+                notification.style.position = 'relative';
+                notification.style.pointerEvents = 'auto';
 
-                // Create message container
                 const messageDiv = document.createElement('div');
-                messageDiv.style.color = 'white';
-                messageDiv.style.fontSize = '16px';
-                messageDiv.style.fontWeight = 'bold';
-                messageDiv.style.marginBottom = '15px';
-                messageDiv.style.textAlign = 'center';
+                messageDiv.className = 'font-semibold text-center';
                 messageDiv.textContent = data.message || 'Stock error occurred';
 
-                // Create action buttons container
-                const buttonsDiv = document.createElement('div');
-                buttonsDiv.style.display = 'flex';
-                buttonsDiv.style.justifyContent = 'center';
-                buttonsDiv.style.gap = '10px';
-
-                // View Cart button
-                const cartButton = document.createElement('button');
-                cartButton.textContent = 'View Cart';
-                cartButton.className = 'px-4 py-2 bg-white text-red-600 font-bold rounded hover:bg-white transition-colors';
-                cartButton.onclick = () => {
-                    window.location.href = '/cart';
-                };
-
-                // Continue Shopping button
-                const shopButton = document.createElement('button');
-                shopButton.textContent = 'Continue Shopping';
-                shopButton.className = 'px-4 py-2 bg-white text-red-600 font-bold rounded hover:bg-white transition-colors';
-                shopButton.onclick = () => {
-                    window.location.href = '/';
-                };
-
-                // Close button
                 const closeButton = document.createElement('button');
                 closeButton.textContent = '✕';
-                closeButton.className = 'px-3 py-2 bg-white text-red-600 font-bold rounded hover:bg-white transition-colors';
+                closeButton.className = 'px-3 py-2 bg-white text-red-600 font-bold rounded hover:bg-white transition-colors absolute top-2 right-2';
                 closeButton.style.position = 'absolute';
-                closeButton.style.top = '10px';
-                closeButton.style.right = '10px';
                 closeButton.onclick = () => {
                     notification.style.transform = 'translateX(100%)';
                     notification.style.opacity = '0';
@@ -457,11 +475,7 @@ style="background: rgba(255,255,255,0.95);"
                     }, 300);
                 };
 
-                notification.style.position = 'relative';
-                buttonsDiv.appendChild(cartButton);
-                buttonsDiv.appendChild(shopButton);
                 notification.appendChild(messageDiv);
-                notification.appendChild(buttonsDiv);
                 notification.appendChild(closeButton);
 
                 container.appendChild(notification);
@@ -485,5 +499,6 @@ style="background: rgba(255,255,255,0.95);"
             });
         });
     </script>
+    @stack('scripts')
 </body>
 </html>

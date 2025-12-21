@@ -31,7 +31,7 @@
      x-transition:leave="transition ease-in duration-200"
      x-transition:leave-start="opacity-100"
      x-transition:leave-end="opacity-0"
-     class="fixed inset-0 z-[9999] overflow-y-auto"
+    class="fixed inset-0 z-50 overflow-y-auto"
      style="display: none;"
      @keydown.escape.window="closeModal()">
 
@@ -67,10 +67,10 @@
                          class="w-full h-full object-cover">
 
                     <!-- Image overlay with branding -->
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent">
+                    <div class="absolute inset-0 bg-linear-to-t from-black/50 to-transparent">
                         <div class="absolute bottom-6 left-6 text-white">
                             <h3 class="text-2xl font-bold mb-2">Joyful</h3>
-                            <p class="text-sm opacity-90">Premium Activewear</p>
+                            <p class="text-sm opacity-90">Scented Candles</p>
                         </div>
                     </div>
                 </div>
@@ -87,25 +87,25 @@
                         <!-- Benefits List -->
                         <div class="space-y-3 mb-8 text-left">
                             <div class="flex items-center">
-                                <svg class="w-5 h-5 text-red-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-5 h-5 text-red-600 mr-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
                                 <span class="text-gray-700">10% off your first order</span>
                             </div>
                             <div class="flex items-center">
-                                <svg class="w-5 h-5 text-red-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-5 h-5 text-red-600 mr-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
                                 <span class="text-gray-700">Exclusive member discounts</span>
                             </div>
                             <div class="flex items-center">
-                                <svg class="w-5 h-5 text-red-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-5 h-5 text-red-600 mr-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
                                 <span class="text-gray-700">Early access to new collections</span>
                             </div>
                             <div class="flex items-center">
-                                <svg class="w-5 h-5 text-red-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-5 h-5 text-red-600 mr-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
                                 <span class="text-gray-700">Fast & easy checkout</span>
@@ -115,7 +115,7 @@
                         <!-- Register Button -->
                         <a href="{{ route('register') }}"
                            @click="closeModal()"
-                           class="w-full bg-red-600 text-white py-4 px-6 rounded-lg hover:bg-red-700 transition-colors font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 inline-block text-center">
+                           class="w-full bg-red-600 text-white py-4 px-6 rounded-lg hover:bg-red-700 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition duration-200 inline-block text-center">
                            GET 10% OFF
                         </a>
 
