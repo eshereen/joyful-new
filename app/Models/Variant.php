@@ -15,7 +15,7 @@ class Variant extends Model
     /** @use HasFactory<VariantFactory> */
     use HasFactory, HasSku;
 
-    protected $fillable = ['product_id',  'sku', 'stock', 'price', 'weight', 'compare_price', 'wick_type', 'size'];
+    protected $fillable = ['product_id',  'sku', 'stock', 'price', 'weight', 'compare_price', 'wick_type', 'size','jar_color'];
 
     protected $casts = [
         'price' => 'decimal:2',
@@ -27,6 +27,11 @@ class Variant extends Model
     const WICK_TYPES = [
         'wooden' => 'Wooden',
         'cotton' => 'Cotton',
+    ];
+    const JAR_COLORS = [
+        'white' => 'White',
+      'amber' => 'Amber',
+        'brown' => 'Brown',
     ];
     const SIZE = [
         '100' => '100',

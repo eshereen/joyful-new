@@ -23,6 +23,9 @@ class VariantForm
                 Select::make('size')
                     ->options(Variant::SIZE)
                     ->required(),
+                Select::make('jar_color')
+                    ->options(Variant::JAR_COLORS)
+                    ->placeholder('Select jar color'),
                 TextInput::make('stock')
                     ->required()
                     ->numeric()

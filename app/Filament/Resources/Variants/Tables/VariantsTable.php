@@ -33,6 +33,9 @@ class VariantsTable
                 TextColumn::make('weight')
                     ->numeric()
                     ->sortable(),
+                TextColumn::make('jar_color')
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

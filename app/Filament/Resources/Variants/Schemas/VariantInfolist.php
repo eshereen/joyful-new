@@ -27,6 +27,8 @@ class VariantInfolist
                 TextEntry::make('weight')
                     ->numeric()
                     ->placeholder('-'),
+                TextEntry::make('jar_color')
+                    ->placeholder('-'),
                 TextEntry::make('created_at')
                     ->dateTime()
                     ->placeholder('-'),
