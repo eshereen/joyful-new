@@ -55,12 +55,10 @@ class ProductController extends Controller
 
             // Collections are standalone bundles - no product needed
             $title = $collection->name . ' | Joyful';
-            $currencyInfo = $this->currencyService->getCurrentCurrencyInfo();
 
             return view('products.show', [
                 'product' => null, // No product for collections
                 'collection' => $collection,
-                'currencyInfo' => $currencyInfo,
                 'title' => $title
             ]);
         }
@@ -72,14 +70,10 @@ class ProductController extends Controller
 
         $title = $product->name . ' | Joyful';
 
-        // Get current currency info
-        $currencyInfo = $this->currencyService->getCurrentCurrencyInfo();
-
-        // Build cache key for currency-aware caching
-        $cacheKey = 'product_show_' . $product->id . '_' . md5($currencyInfo['currency_code']);
-
         // Cache the product with eager loading for better performance
-        $product = cache()->remember($cacheKey, 600, function () use ($product, $currencyInfo) {
+        $cacheKey = 'product_show_' . $product->id;
+        
+        $product = cache()->remember($cacheKey, 600, function () use ($product) {
             // Eager load relationships to avoid N+1 queries
             $product->load([
                 'category:id,name,slug',
@@ -93,23 +87,10 @@ class ProductController extends Controller
                 }
             ]);
 
-            // Convert variant prices to current currency
-            if ($product->variants && $product->variants->isNotEmpty()) {
-                $product->variants->transform(function ($variant) use ($currencyInfo) {
-                    if ($variant->price) {
-                        $variant->converted_price = $this->currencyService->convertFromUSD($variant->price, $currencyInfo['currency_code']);
-                    }
-                    if ($variant->compare_price && $variant->compare_price > 0) {
-                        $variant->converted_compare_price = $this->currencyService->convertFromUSD($variant->compare_price, $currencyInfo['currency_code']);
-                    }
-                    return $variant;
-                });
-            }
-
             return $product;
         });
 
-        return view('products.show', compact('product', 'collection', 'currencyInfo', 'title'));
+        return view('products.show', compact('product', 'collection', 'title'));
     }
 
     /**
@@ -119,9 +100,6 @@ class ProductController extends Controller
     {
         $query = $request->get('q', '');
         $title = 'Search Results for "' . $query . '" | Joyful';
-
-        // Get current currency info
-        $currencyInfo = $this->currencyService->getCurrentCurrencyInfo();
 
         // If no search query, redirect to products index
         if (empty($query)) {
@@ -155,24 +133,7 @@ class ProductController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(12);
 
-        // Convert product prices to current currency
-        $products->getCollection()->transform(function ($product) use ($currencyInfo) {
-            // Convert variant prices
-            if ($product->variants && $product->variants->isNotEmpty()) {
-                $product->variants->transform(function ($variant) use ($currencyInfo) {
-                    if ($variant->price) {
-                        $variant->converted_price = $this->currencyService->convertFromUSD($variant->price, $currencyInfo['currency_code']);
-                    }
-                    if ($variant->compare_price && $variant->compare_price > 0) {
-                        $variant->converted_compare_price = $this->currencyService->convertFromUSD($variant->compare_price, $currencyInfo['currency_code']);
-                    }
-                    return $variant;
-                });
-            }
-            return $product;
-        });
-
-        return view('products.search', compact('products', 'query', 'currencyInfo', 'title'));
+        return view('products.search', compact('products', 'query', 'title'));
     }
 
     /**
