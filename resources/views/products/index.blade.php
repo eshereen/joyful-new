@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8 text-center">All Products</h1>
+<div class="container mx-auto px-4 my-40">
+    <h1 class="text-3xl font-bold mb-8 text-center">All Scented Candles</h1>
 
     @if($result && $result->count() > 0)
         <!-- Products Grid -->
@@ -11,7 +11,7 @@
                 <div class="bg-white overflow-hidden transition hover:shadow-lg">
                     <!-- Product Image -->
                     <div class="relative aspect-[4/5] overflow-hidden group">
-                        <a href="{{ route('products.show', $product->slug) }}">
+                        <a href="{{ route('product.show', $product->slug) }}">
                             @php
                                 $mainImage = $product->getFirstMediaUrl('main_image');
                                 if (empty($mainImage)) {
@@ -61,7 +61,7 @@
 
                     <!-- Product Info -->
                     <div class="p-4">
-                        <a href="{{ route('products.show', $product->slug) }}" 
+                        <a href="{{ route('product.show', $product->slug) }}" 
                            class="block text-sm font-semibold text-gray-800 hover:text-red-600 mb-2 line-clamp-2">
                             {{ $product->name }}
                         </a>

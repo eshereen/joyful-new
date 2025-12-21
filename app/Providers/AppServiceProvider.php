@@ -52,9 +52,9 @@ class AppServiceProvider extends ServiceProvider
         OrderItem::observe(OrderItemObserver::class);
         Product::observe(ProductObserver::class);
 
-        // Share categories with all views - Optimized with caching and eager loading
-        View::composer('*', function ($view) {
-            $categories = cache()->remember('header_categories', 1800, function () {
+        // Share categories only with navbar (not all views) - Optimized with caching and eager loading
+        View::composer(['layouts.navbar', 'layouts.app'], function ($view) {
+            $categories = cache()->remember('joyful_cache_header_categories', 1800, function () {
                 return Category::with(['media'])
                     ->withCount(['products' => function ($query) {
                         $query->where('products.active', true);
@@ -69,7 +69,7 @@ class AppServiceProvider extends ServiceProvider
             });
 
             // Get collections for dropdown - eager load media
-            $collections = cache()->remember('header_collections', 1800, function () {
+            $collections = cache()->remember('joyful_cache_header_collections', 1800, function () {
                 return \App\Models\Collection::where('collections.active', true)
                     ->with(['media' => function ($q) {
                         $q->where('collection_name', 'main_image');
@@ -80,11 +80,13 @@ class AppServiceProvider extends ServiceProvider
                     ->orderBy('name')
                     ->get();
             });
-             // Get collections for dropdown
-             $products   = cache()->remember('header_products', 1800, function () {
+            
+            // Get products for dropdown - with variants eager loaded to prevent N+1
+            $products = cache()->remember('joyful_cache_header_products', 1800, function () {
                 return Product::where('products.active', true)
+                    ->with(['variants:id,product_id,price,compare_price,stock'])
                     ->orderBy('name')
-
+                    ->take(20) // Limit to first 20 products
                     ->get();
             });
 
@@ -117,26 +119,27 @@ class AppServiceProvider extends ServiceProvider
 
         // Cache clearing events for categories
         Event::listen(['eloquent.created: App\Models\Category', 'eloquent.updated: App\Models\Category', 'eloquent.deleted: App\Models\Category'], function () {
-            Cache::forget('header_categories');
+            Cache::forget('joyful_cache_header_categories');
             Cache::forget('all_categories');
         });
 
         // Cache clearing events for collections
         Event::listen(['eloquent.created: App\Models\Collection', 'eloquent.updated: App\Models\Collection', 'eloquent.deleted: App\Models\Collection'], function () {
-            Cache::forget('header_collections');
+            Cache::forget('joyful_cache_header_collections');
         });
 
         // Cache clearing events for subcategories
         Event::listen(['eloquent.created: App\Models\Subcategory', 'eloquent.updated: App\Models\Subcategory', 'eloquent.deleted: App\Models\Subcategory'], function () {
-            Cache::forget('header_categories');
+            Cache::forget('joyful_cache_header_categories');
             Cache::forget('all_categories');
         });
 
         // Cache clearing events for products (affects category counts)
         Event::listen(['eloquent.created: App\Models\Product', 'eloquent.updated: App\Models\Product', 'eloquent.deleted: App\Models\Product'], function () {
-            Cache::forget('header_categories');
+            Cache::forget('joyful_cache_header_categories');
             Cache::forget('all_categories');
-            Cache::forget('header_collections');
+            Cache::forget('joyful_cache_header_collections');
+            Cache::forget('joyful_cache_header_products');
         });
 
         // Cache clearing events for orders and order items (affects best seller calculations)
